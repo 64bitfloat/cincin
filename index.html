@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Cheers! - 超音波×加速度 スマホ乾杯アプリ</title>
+  <style>
+    :root {
+      --bg-color: #0b0d13;
+      --card-bg: rgba(23, 27, 38, 0.75);
+      --card-border: rgba(212, 175, 55, 0.25);
+      --gold-primary: #f5cf68;
+      --gold-gradient: linear-gradient(135deg, #fce08a 0%, #dfa732 50%, #b8860b 100%);
+      --gold-glow: rgba(245, 207, 104, 0.4);
+      --text-main: #f3f4f6;
+      --text-sub: #9ca3af;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-blue: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* 背景の微細なアンビエントグラデーション */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -20%;
+      left: 20%;
+      width: 60vw;
+      height: 60vw;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* 乾杯瞬間のフラッシュエフェクト */
+    #flashOverlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle, #fffdf0 10%, #f7d377 60%, rgba(212, 175, 55, 0.8) 100%);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 999;
+      transition: opacity 0.05s ease-out;
+    }
+    #flashOverlay.flash {
+      opacity: 0.95;
+      transition: opacity 0.02s ease-out;
+    }
+
+    /* パーティクル用Canvas */
+    #fxCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 50;
+    }
+
+    /* メインコンテナ */
+    .app-container {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 480px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 16px 20px 24px;
+      gap: 16px;
+    }
+
+    /* ヘッダー */
+    header {
+      text-align: center;
+      padding-top: 8px;
+    }
+
+    .app-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      background: var(--gold-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-subtitle {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-top: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    /* モード選択セグメントスイッチ */
+    .mode-selector-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .mode-selector {
+      display: flex;
+      background: rgba(15, 18, 26, 0.85);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 4px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .mode-btn .sub-text {
+      font-size: 9px;
+      opacity: 0.75;
+      font-weight: normal;
+    }
+
+    .mode-btn.active {
+      background: var(--gold-gradient);
+      color: #1a1300;
+      box-shadow: 0 2px 10px var(--gold-glow);
+    }
+    .mode-btn.active .sub-text {
+      color: #2b1f02;
+    }
+
+    .mode-hint {
+      font-size: 11px;
+      color: #d1b46a;
+      text-align: center;
+      min-height: 16px;
+      line-height: 1.4;
+    }
+
+    /* メインビジュアルエリア */
+    .stage-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 250px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stage-card.proximity-active {
+      border-color: rgba(245, 207, 104, 0.8);
+      box-shadow: 0 0 35px rgba(245, 207, 104, 0.35), inset 0 0 20px rgba(245, 207, 104, 0.15);
+    }
+
+    .stage-card.cheers-burst {
+      animation: stageBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes stageBounce {
+      0% { transform: scale(1); }
+      30% { transform: scale(1.04); }
+      60% { transform: scale(0.98); }
+      100% { transform: scale(1); }
+    }
+
+    /* グラスアニメーション */
+    .glasses-container {
+      position: relative;
+      width: 140px;
+      height: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .glass-svg {
+      width: 68px;
+      height: 85px;
+      position: absolute;
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+    }
+
+    .glass-left {
+      left: 12px;
+      transform-origin: bottom right;
+      transform: rotate(-10deg);
+    }
+
+    .glass-right {
+      right: 12px;
+      transform-origin: bottom left;
+      transform: rotate(10deg);
+    }
+
+    /* 接近時のグラス挙動 */
+    .proximity-active .glass-left {
+      transform: translateX(12px) rotate(4deg);
+      filter: drop-shadow(0 0 12px rgba(245, 207, 104, 0.6));
+    }
+    .proximity-active .glass-right {
+      transform: translateX(-12px) rotate(-4deg);
+      filter: drop-shadow(0 0 12px rgba(245, 207, 104, 0.6));
+    }
+
+    /* 衝突時のアニメーション */
+    .stage-card.cheers-burst .glass-left {
+      animation: clinkLeft 0.5s ease-out;
+    }
+    .stage-card.cheers-burst .glass-right {
+      animation: clinkRight 0.5s ease-out;
+    }
+
+    @keyframes clinkLeft {
+      0% { transform: translateX(0px) rotate(-10deg); }
+      40% { transform: translateX(24px) rotate(18deg) scale(1.1); }
+      70% { transform: translateX(-4px) rotate(-14deg); }
+      100% { transform: translateX(0px) rotate(-10deg); }
+    }
+
+    @keyframes clinkRight {
+      0% { transform: translateX(0px) rotate(10deg); }
+      40% { transform: translateX(-24px) rotate(-18deg) scale(1.1); }
+      70% { transform: translateX(4px) rotate(14deg); }
+      100% { transform: translateX(0px) rotate(10deg); }
+    }
+
+    /* ステータスバッジ群 */
+    .status-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .primary-status {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-align: center;
+    }
+
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #6b7280;
+      display: inline-block;
+      transition: background 0.3s;
+    }
+    .pulse-dot.active {
+      background: var(--accent-green);
+      box-shadow: 0 0 10px var(--accent-green);
+      animation: pulseAnim 1.4s infinite;
+    }
+    .pulse-dot.waiting {
+      background: var(--gold-primary);
+      box-shadow: 0 0 8px var(--gold-primary);
+      animation: pulseAnim 1.4s infinite;
+    }
+    @keyframes pulseAnim {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .indicator-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.25s;
+    }
+
+    .pill.active {
+      background: rgba(245, 207, 104, 0.18);
+      color: var(--gold-primary);
+      border: 1px solid rgba(245, 207, 104, 0.4);
+      font-weight: 600;
+    }
+
+    /* スタートボタン */
+    .start-btn-wrap {
+      margin-top: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .btn-start {
+      background: var(--gold-gradient);
+      color: #161202;
+      border: none;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 14px 32px;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px var(--gold-glow);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
+      width: 100%;
+      max-width: 280px;
+      justify-content: center;
+    }
+
+    .btn-start:active {
+      transform: scale(0.97);
+    }
+
+    .btn-start.running {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-sub);
+      box-shadow: none;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      cursor: default;
+    }
+
+    /* クールダウン・インジケーター */
+    .cooldown-bar {
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      margin-top: 10px;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .cooldown-bar.active {
+      opacity: 1;
+    }
+    .cooldown-bar .progress {
+      height: 100%;
+      background: var(--gold-gradient);
+      width: 100%;
+      transform-origin: left;
+    }
+
+    /* デバッグ・調整アコーディオン */
+    .debug-accordion {
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+
+    .debug-header {
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-sub);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .debug-header:hover {
+      color: var(--text-main);
+    }
+
+    .debug-header .chevron {
+      transition: transform 0.3s;
+      font-size: 11px;
+    }
+    .debug-accordion.open .debug-header .chevron {
+      transform: rotate(180deg);
+    }
+
+    .debug-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 0 16px;
+    }
+    .debug-accordion.open .debug-body {
+      max-height: 520px;
+      padding: 8px 16px 18px;
+    }
+
+    /* リアルタイムメーター群 */
+    .meter-group {
+      margin-bottom: 12px;
+    }
+
+    .meter-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+    }
+
+    .meter-label-row .val {
+      font-weight: 600;
+      color: var(--gold-primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .meter-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .meter-fill {
+      height: 100%;
+      width: 0%;
+      background: #3b82f6;
+      border-radius: 4px;
+      transition: width 0.05s linear;
+    }
+
+    .meter-fill.proximity-reached {
+      background: var(--gold-gradient);
+    }
+
+    .meter-threshold-marker {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: rgba(255, 255, 255, 0.7);
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    /* スライダー群 */
+    .slider-group {
+      margin-top: 10px;
+    }
+
+    .slider-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+    }
+
+    .slider-input {
+      width: 100%;
+      height: 6px;
+      -webkit-appearance: none;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 3px;
+      outline: none;
+    }
+    .slider-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--gold-primary);
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(0,0,0,0.5);
+    }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.2s;
+    }
+    .btn-secondary:active {
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    /* ガイド・フッター */
+    .guide-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 11px;
+      color: var(--text-sub);
+      line-height: 1.5;
+    }
+
+    .guide-box strong {
+      color: var(--gold-primary);
+    }
+
+    .guide-box ol {
+      padding-left: 18px;
+      margin-top: 6px;
+    }
+
+    .guide-box li {
+      margin-bottom: 4px;
+    }
+
+    /* エラー・セキュリティ警告バナー */
+    .warning-banner {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #fca5a5;
+      display: none;
+      line-height: 1.4;
+    }
+    .warning-banner.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 乾杯の光フラッシュ -->
+  <div id="flashOverlay"></div>
+
+  <!-- パーティクル描画用 Canvas -->
+  <canvas id="fxCanvas"></canvas>
+
+  <div class="app-container">
+
+    <!-- ヘッダー -->
+    <header>
+      <div class="app-title">🥂 Cheers Clink!</div>
+      <div class="app-subtitle">超音波接近検知 × 加速度衝撃検知 スマホ乾杯</div>
+    </header>
+
+    <!-- HTTPS警告バナー（非セキュア環境時） -->
+    <div id="securityWarning" class="warning-banner">
+      ⚠️ <strong>HTTPS環境が必要です</strong><br>
+      マイクや加速度センサーの権限を取得するには、HTTPS接続（またはlocalhost）で開く必要があります。
+    </div>
+
+    <!-- モード選択UI -->
+    <div class="mode-selector-wrap">
+      <div class="mode-selector" id="modeSelector">
+        <button class="mode-btn active" data-mode="A">
+          <span>モード A</span>
+          <span class="sub-text">18.5kHz発信 / 19.5kHz受信</span>
+        </button>
+        <button class="mode-btn" data-mode="B">
+          <span>モード B</span>
+          <span class="sub-text">19.5kHz発信 / 18.5kHz受信</span>
+        </button>
+        <button class="mode-btn" data-mode="solo">
+          <span>ソロ</span>
+          <span class="sub-text">衝撃検知のみ</span>
+        </button>
+      </div>
+      <div class="mode-hint" id="modeHint">
+        💡 1台目を「モードA」、2台目を「モードB」に設定してください
+      </div>
+    </div>
+
+    <!-- メインステージ（乾杯ビジュアル＆状態表示） -->
+    <div class="stage-card" id="stageCard">
+
+      <!-- グラスアニメーション -->
+      <div class="glasses-container">
+        <!-- 左のグラス (シャンパングラスSVG) -->
+        <svg class="glass-svg glass-left" viewBox="0 0 64 100" fill="none">
+          <path d="M16 8 C16 38, 26 48, 30 52 L30 84 L22 84 C19 84, 19 90, 22 90 L42 90 C45 90, 45 84, 42 84 L34 84 L34 52 C38 48, 48 38, 48 8 Z" fill="url(#glassLiquid)" opacity="0.9"/>
+          <path d="M16 8 C16 38, 26 48, 30 52 L30 84 L22 84 C19 84, 19 90, 22 90 L42 90 C45 90, 45 84, 42 84 L34 84 L34 52 C38 48, 48 38, 48 8 Z" stroke="#f3e5ab" stroke-width="2.5" fill="none"/>
+          <ellipse cx="32" cy="8" rx="16" ry="4" stroke="#fce08a" stroke-width="2" fill="rgba(255,255,255,0.2)"/>
+          <path d="M22 18 C22 28, 28 36, 32 38" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+
+        <!-- 右のグラス (シャンパングラスSVG) -->
+        <svg class="glass-svg glass-right" viewBox="0 0 64 100" fill="none">
+          <path d="M16 8 C16 38, 26 48, 30 52 L30 84 L22 84 C19 84, 19 90, 22 90 L42 90 C45 90, 45 84, 42 84 L34 84 L34 52 C38 48, 48 38, 48 8 Z" fill="url(#glassLiquid)" opacity="0.9"/>
+          <path d="M16 8 C16 38, 26 48, 30 52 L30 84 L22 84 C19 84, 19 90, 22 90 L42 90 C45 90, 45 84, 42 84 L34 84 L34 52 C38 48, 48 38, 48 8 Z" stroke="#f3e5ab" stroke-width="2.5" fill="none"/>
+          <ellipse cx="32" cy="8" rx="16" ry="4" stroke="#fce08a" stroke-width="2" fill="rgba(255,255,255,0.2)"/>
+          <path d="M42 18 C42 28, 36 36, 32 38" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+
+        <!-- SVGグラデーション定義 -->
+        <svg width="0" height="0">
+          <defs>
+            <linearGradient id="glassLiquid" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#fff1b8" stop-opacity="0.3"/>
+              <stop offset="40%" stop-color="#f5cf68" stop-opacity="0.7"/>
+              <stop offset="100%" stop-color="#b8860b" stop-opacity="0.9"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <!-- ステータス表記 -->
+      <div class="status-area">
+        <div class="primary-status" id="mainStatusText">
+          <span class="pulse-dot" id="statusDot"></span>
+          <span id="statusLabel">開始ボタンを押してください</span>
+        </div>
+
+        <div class="indicator-pills">
+          <span class="pill" id="pillTx">📡 発信: 待機</span>
+          <span class="pill" id="pillRx">📶 接近: 待機</span>
+          <span class="pill" id="pillMotion">💥 衝撃: 待機</span>
+        </div>
+
+        <!-- クールダウンバー -->
+        <div class="cooldown-bar" id="cooldownBar">
+          <div class="progress" id="cooldownProgress"></div>
+        </div>
+      </div>
+
+      <!-- スタートボタン -->
+      <div class="start-btn-wrap">
+        <button class="btn-start" id="btnStart">
+          <span>✨ 乾杯の準備をする (Start)</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- デバッグ＆感度調整パネル（アコーディオン） -->
+    <div class="debug-accordion" id="debugAccordion">
+      <div class="debug-header" id="debugHeader">
+        <span>⚙️ モニター &amp; 感度調整 (リアルタイム)</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="debug-body">
+        
+        <!-- 相手超音波の受信強度メーター -->
+        <div class="meter-group">
+          <div class="meter-label-row">
+            <span>相手の超音波 (<span id="dbgTargetFreq">19,500Hz</span>)</span>
+            <span class="val"><span id="dbgRxVal">0</span> / 255</span>
+          </div>
+          <div class="meter-track">
+            <div class="meter-fill" id="meterRxFill"></div>
+            <div class="meter-threshold-marker" id="markerRxThresh" style="left: 55%;"></div>
+          </div>
+        </div>
+
+        <!-- 加速度衝撃メーター -->
+        <div class="meter-group">
+          <div class="meter-label-row">
+            <span>加速度衝撃値 (Vector Norm)</span>
+            <span class="val"><span id="dbgAccVal">0.0</span> m/s²</span>
+          </div>
+          <div class="meter-track">
+            <div class="meter-fill" id="meterAccFill" style="background: #ec4899;"></div>
+            <div class="meter-threshold-marker" id="markerAccThresh" style="left: 45%;"></div>
+          </div>
+        </div>
+
+        <!-- スライダー: 超音波閾値 -->
+        <div class="slider-group">
+          <div class="slider-row">
+            <span>超音波の検知閾値</span>
+            <span class="val" id="valRxThresh">140</span>
+          </div>
+          <input type="range" class="slider-input" id="sliderRxThresh" min="40" max="240" value="140">
+        </div>
+
+        <!-- スライダー: 加速度閾値 -->
+        <div class="slider-group">
+          <div class="slider-row">
+            <span>衝撃（加速度）検知閾値</span>
+            <span class="val" id="valAccThresh">15.0 m/s²</span>
+          </div>
+          <input type="range" class="slider-input" id="sliderAccThresh" min="6" max="35" step="0.5" value="15.0">
+        </div>
+
+        <!-- スライダー: 発信音量 -->
+        <div class="slider-group">
+          <div class="slider-row">
+            <span>超音波の発信ゲイン</span>
+            <span class="val" id="valTxGain">30%</span>
+          </div>
+          <input type="range" class="slider-input" id="sliderTxGain" min="0" max="100" value="30">
+        </div>
+
+        <!-- アクションボタン -->
+        <div class="action-row">
+          <button class="btn-secondary" id="btnTestSound">🔔 乾杯音をテスト</button>
+          <button class="btn-secondary" id="btnResetPeak">リセット</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 遊び方ガイド -->
+    <div class="guide-box">
+      <strong>🥂 使い方 (2台のスマホで乾杯)</strong>
+      <ol>
+        <li>端末Aを「モードA」、端末Bを「モードB」にします。</li>
+        <li>両方の端末で「乾杯の準備をする」をタップし、マイクとモーションを許可します。</li>
+        <li>スマホを近づけると画面が「接近中！」と光ります。</li>
+        <li>その状態でスマホ同士をコツンと軽くぶつけると、両方から美しい乾杯音が響きます！</li>
+      </ol>
+    </div>
+
+  </div>
+
+  <script>
+    /* ==========================================================================
+       1. 定数・グローバル変数・状態管理
+       ========================================================================== */
+    const FREQ_CONFIG = {
+      A: { txFreq: 18500, rxFreq: 19500, labelTx: '18.5kHz', labelRx: '19.5kHz' },
+      B: { txFreq: 19500, rxFreq: 18500, labelTx: '19.5kHz', labelRx: '18.5kHz' },
+      solo: { txFreq: 0, rxFreq: 0, labelTx: 'なし', labelRx: 'なし' }
+    };
+
+    let currentMode = 'A';
+    let isRunning = false;
+    let isCooldown = false;
+    let cooldownDurationMs = 1500;
+
+    // 閾値設定
+    let rxThreshold = 140;          // 超音波エネルギー閾値 (0 - 255)
+    let impactThreshold = 15.0;      // 加速度合成ノルム閾値 (m/s²)
+    let txVolume = 0.30;            // 発信ゲイン (0.0 - 1.0)
+
+    // 接近判定フラグ & タイムスタンプ
+    let isProximity = false;
+    let lastProximityTime = 0;
+    const PROXIMITY_HOLD_MS = 650; // ぶつかった瞬間に超音波が途切れても許容する余韻時間
+
+    // Web Audio API
+    let audioCtx = null;
+    let mediaStream = null;
+    let txOscillator = null;
+    let txGainNode = null;
+    let rxAnalyser = null;
+    let rxDataArray = null;
+
+    // 加速度センサー
+    let lastAcc = { x: 0, y: 0, z: 0 };
+    let currentAccMagnitude = 0;
+    let maxAccPeak = 0;
+
+    // アニメーションフレーム
+    let rafId = null;
+
+    // DOM要素
+    const btnStart = document.getElementById('btnStart');
+    const stageCard = document.getElementById('stageCard');
+    const mainStatusText = document.getElementById('statusLabel');
+    const statusDot = document.getElementById('statusDot');
+    const pillTx = document.getElementById('pillTx');
+    const pillRx = document.getElementById('pillRx');
+    const pillMotion = document.getElementById('pillMotion');
+    const cooldownBar = document.getElementById('cooldownBar');
+    const cooldownProgress = document.getElementById('cooldownProgress');
+    const flashOverlay = document.getElementById('flashOverlay');
+    const modeHint = document.getElementById('modeHint');
+    const securityWarning = document.getElementById('securityWarning');
+
+    // デバッグDOM
+    const debugAccordion = document.getElementById('debugAccordion');
+    const debugHeader = document.getElementById('debugHeader');
+    const dbgTargetFreq = document.getElementById('dbgTargetFreq');
+    const dbgRxVal = document.getElementById('dbgRxVal');
+    const dbgAccVal = document.getElementById('dbgAccVal');
+    const meterRxFill = document.getElementById('meterRxFill');
+    const meterAccFill = document.getElementById('meterAccFill');
+    const markerRxThresh = document.getElementById('markerRxThresh');
+    const markerAccThresh = document.getElementById('markerAccThresh');
+    const sliderRxThresh = document.getElementById('sliderRxThresh');
+    const valRxThresh = document.getElementById('valRxThresh');
+    const sliderAccThresh = document.getElementById('sliderAccThresh');
+    const valAccThresh = document.getElementById('valAccThresh');
+    const sliderTxGain = document.getElementById('sliderTxGain');
+    const valTxGain = document.getElementById('valTxGain');
+    const btnTestSound = document.getElementById('btnTestSound');
+    const btnResetPeak = document.getElementById('btnResetPeak');
+
+    /* ==========================================================================
+       2. セキュリティ & 環境チェック
+       ========================================================================== */
+    const isSecure = window.isSecureContext || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    if (!isSecure) {
+      securityWarning.classList.add('show');
+    }
+
+    /* ==========================================================================
+       3. プロシージャル乾杯サウンド生成（Web Audio API）
+          - 澄んだクリスタルグラスの「カチン！」
+          - 微細なシャンパンの泡の「シュワシュワ」
+       ========================================================================== */
+    function playClinkSound() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      const now = audioCtx.currentTime;
+
+      // リミッター＆コンプレッサー（クリッピング防止・音圧とクリアさの確保）
+      const compressor = audioCtx.createDynamicsCompressor();
+      compressor.threshold.setValueAtTime(-12, now);
+      compressor.knee.setValueAtTime(8, now);
+      compressor.ratio.setValueAtTime(10, now);
+      compressor.attack.setValueAtTime(0.001, now);
+      compressor.release.setValueAtTime(0.2, now);
+      compressor.connect(audioCtx.destination);
+
+      // マスターゲイン
+      const masterGain = audioCtx.createGain();
+      masterGain.connect(compressor);
+      masterGain.gain.setValueAtTime(0.9, now);
+
+      // --- 1. クリスタルグラスの固有振動モード（インハーモニック倍音合成） ---
+      // 高級クリスタルグラスが衝突した時の実測周波数特性に基づくマルチレゾナンス
+      const modes = [
+        { freq: 2890, gain: 0.70, decay: 2.1 },  // 主振動モード（澄み渡る基音）
+        { freq: 3280, gain: 0.50, decay: 1.8 },  // 近接モード（心地よいビート・唸りを生成）
+        { freq: 4920, gain: 0.30, decay: 1.1 },  // 金属的・ガラス特有の上層共振
+        { freq: 6580, gain: 0.20, decay: 0.45 }, // 硬質な打撃の輝き
+        { freq: 8850, gain: 0.15, decay: 0.28 }  // 超高域のクリスタルスパークル
+      ];
+
+      modes.forEach(mode => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        // 打撃瞬間の微細なピッチベンド（非線形インパクトの再現）
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(mode.freq * 1.018, now);
+        osc.frequency.exponentialRampToValueAtTime(mode.freq, now + 0.006);
+
+        // 高速アタック（0.3ms）と美しい指数減衰
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(mode.gain, now + 0.0006);
+        gain.gain.exponentialRampToValueAtTime(0.00001, now + mode.decay);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(now);
+        osc.stop(now + mode.decay + 0.05);
+      });
+
+      // --- 2. 接触のインパルスクリック（硬い接触音） ---
+      const clickDuration = 0.012;
+      const clickBuffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * clickDuration), audioCtx.sampleRate);
+      const clickData = clickBuffer.getChannelData(0);
+      for (let i = 0; i < clickData.length; i++) {
+        clickData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (clickData.length * 0.2));
+      }
+      const clickSource = audioCtx.createBufferSource();
+      clickSource.buffer = clickBuffer;
+
+      const clickFilter = audioCtx.createBiquadFilter();
+      clickFilter.type = 'bandpass';
+      clickFilter.frequency.setValueAtTime(5400, now);
+      clickFilter.Q.setValueAtTime(3.5, now);
+
+      const clickGain = audioCtx.createGain();
+      clickGain.gain.setValueAtTime(0.4, now);
+      clickGain.gain.exponentialRampToValueAtTime(0.001, now + clickDuration);
+
+      clickSource.connect(clickFilter);
+      clickFilter.connect(clickGain);
+      clickGain.connect(masterGain);
+
+      clickSource.start(now);
+
+      // --- 3. シャンパンの泡のシュワシュワ音（微細ホワイトノイズ） ---
+      const fizzDuration = 1.2;
+      const fizzBuffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * fizzDuration), audioCtx.sampleRate);
+      const fizzData = fizzBuffer.getChannelData(0);
+      for (let i = 0; i < fizzData.length; i++) {
+        fizzData[i] = (Math.random() * 2 - 1);
+      }
+      const fizzSource = audioCtx.createBufferSource();
+      fizzSource.buffer = fizzBuffer;
+
+      const fizzFilter = audioCtx.createBiquadFilter();
+      fizzFilter.type = 'bandpass';
+      fizzFilter.frequency.setValueAtTime(4600, now);
+      fizzFilter.Q.setValueAtTime(4.0, now);
+
+      const fizzGain = audioCtx.createGain();
+      fizzGain.gain.setValueAtTime(0.0001, now);
+      fizzGain.gain.linearRampToValueAtTime(0.07, now + 0.04);
+      fizzGain.gain.exponentialRampToValueAtTime(0.00005, now + fizzDuration);
+
+      fizzSource.connect(fizzFilter);
+      fizzFilter.connect(fizzGain);
+      fizzGain.connect(masterGain);
+
+      fizzSource.start(now);
+      fizzSource.stop(now + fizzDuration);
+    }
+
+    /* ==========================================================================
+       4. 初期化と権限取得（ユーザージェスチャーハンドラ）
+          - iOS Safariのセキュリティ制限を回避するため、ジェスチャー直下で権限を要求
+       ========================================================================== */
+    async function startApp() {
+      if (isRunning) return;
+
+      try {
+        btnStart.textContent = '⏳ 初期化中...';
+        btnStart.disabled = true;
+
+        // 1. iOS 13+ 加速度センサー権限の要求（ジェスチャー直後に同期的に呼び出す）
+        let motionGranted = true;
+        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+          try {
+            const motionPermission = await DeviceMotionEvent.requestPermission();
+            if (motionPermission !== 'granted') {
+              motionGranted = false;
+              alert('加速度センサーのアクセスが許可されませんでした。設定から許可してください。');
+            }
+          } catch (e) {
+            console.warn('DeviceMotionEvent permission error:', e);
+          }
+        }
+
+        // 2. AudioContextの生成とアンロック
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+        if (audioCtx.state === 'suspended') {
+          await audioCtx.resume();
+        }
+
+        // 3. マイク権限の取得（超音波取得のため、ブラウザの自動音声処理をすべてOFF）
+        if (currentMode !== 'solo') {
+          try {
+            mediaStream = await navigator.mediaDevices.getUserMedia({
+              audio: {
+                echoCancellation: false,
+                noiseSuppression: false,
+                autoGainControl: false
+              }
+            });
+            setupAudioPipeline();
+          } catch (micErr) {
+            console.warn('マイクの取得に失敗:', micErr);
+            alert('マイクのアクセスが拒否されたか利用できません。超音波検知を行わない「ソロ」モードに切り替えます。');
+            setMode('solo');
+          }
+        }
+
+        // 4. 加速度センサーイベントリスナーの登録
+        window.addEventListener('devicemotion', handleMotion, { passive: true });
+
+        // 5. 状態更新
+        isRunning = true;
+        btnStart.classList.add('running');
+        btnStart.textContent = '🥂 乾杯スタンバイ完了！';
+        updateUIStatus();
+
+        // 6. メイン監視ループ開始
+        startLoop();
+
+      } catch (err) {
+        console.error('起動エラー:', err);
+        alert('初期化中にエラーが発生しました: ' + err.message);
+        btnStart.disabled = false;
+        btnStart.textContent = '✨ 乾杯の準備をする (Start)';
+      }
+    }
+
+    /* ==========================================================================
+       5. Web Audio パイプライン（発信オシレーター & 受信アナライザー）
+       ========================================================================== */
+    function setupAudioPipeline() {
+      if (!audioCtx) return;
+
+      const conf = FREQ_CONFIG[currentMode];
+
+      // --- 超音波発信（OscillatorNode） ---
+      if (conf.txFreq > 0) {
+        if (!txOscillator) {
+          txOscillator = audioCtx.createOscillator();
+          txGainNode = audioCtx.createGain();
+
+          txOscillator.type = 'sine';
+          txOscillator.frequency.setValueAtTime(conf.txFreq, audioCtx.currentTime);
+
+          txGainNode.gain.setValueAtTime(txVolume, audioCtx.currentTime);
+
+          txOscillator.connect(txGainNode);
+          txGainNode.connect(audioCtx.destination);
+          txOscillator.start();
+        } else {
+          txOscillator.frequency.setValueAtTime(conf.txFreq, audioCtx.currentTime);
+          txGainNode.gain.setValueAtTime(txVolume, audioCtx.currentTime);
+        }
+      } else {
+        if (txGainNode) {
+          txGainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        }
+      }
+
+      // --- 超音波受信（AnalyserNode） ---
+      if (mediaStream && conf.rxFreq > 0) {
+        if (!rxAnalyser) {
+          const micSource = audioCtx.createMediaStreamSource(mediaStream);
+          rxAnalyser = audioCtx.createAnalyser();
+          rxAnalyser.fftSize = 2048; // 高分解能FFT
+          rxAnalyser.smoothingTimeConstant = 0.3; // 応答性を高めるためスムージング控えめ
+
+          micSource.connect(rxAnalyser);
+          rxDataArray = new Uint8Array(rxAnalyser.frequencyBinCount);
+        }
+      }
+    }
+
+    /* ==========================================================================
+       6. モード切り替え（モードA / モードB / ソロ）
+       ========================================================================== */
+    function setMode(mode) {
+      if (currentMode === mode) return;
+      currentMode = mode;
+
+      // ボタンUIの切り替え
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+
+      // ガイド文言の変更
+      if (mode === 'A') {
+        modeHint.textContent = '💡 1台目を「モードA」、相手の2台目を「モードB」に設定してください';
+      } else if (mode === 'B') {
+        modeHint.textContent = '💡 2台目を「モードB」、相手の1台目を「モードA」に設定してください';
+      } else {
+        modeHint.textContent = '💡 ソロモード：マイクを使わず、衝撃だけで音が鳴ります';
+      }
+
+      dbgTargetFreq.textContent = FREQ_CONFIG[mode].rxFreq > 0 ? `${FREQ_CONFIG[mode].rxFreq.toLocaleString()}Hz` : 'なし';
+
+      // 稼働中ならオーディオパイプラインを即座に再構成
+      if (isRunning && audioCtx) {
+        if (mode === 'solo') {
+          if (txGainNode) txGainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        } else {
+          if (!mediaStream) {
+            navigator.mediaDevices.getUserMedia({
+              audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+            }).then(stream => {
+              mediaStream = stream;
+              setupAudioPipeline();
+            }).catch(e => console.warn(e));
+          } else {
+            setupAudioPipeline();
+          }
+        }
+      }
+      updateUIStatus();
+    }
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => setMode(btn.dataset.mode));
+    });
+
+    /* ==========================================================================
+       7. 加速度（衝撃）検知ロジック
+       ========================================================================== */
+    function handleMotion(e) {
+      // 端末による acceleration / accelerationIncludingGravity のフォールバック
+      let x = 0, y = 0, z = 0;
+
+      if (e.acceleration && (e.acceleration.x !== null || e.acceleration.y !== null || e.acceleration.z !== null)) {
+        x = e.acceleration.x || 0;
+        y = e.acceleration.y || 0;
+        z = e.acceleration.z || 0;
+        currentAccMagnitude = Math.hypot(x, y, z);
+      } else if (e.accelerationIncludingGravity) {
+        // 重力込みの場合は、前フレームとの差分（ハイパス）で衝撃を抽出
+        const gx = e.accelerationIncludingGravity.x || 0;
+        const gy = e.accelerationIncludingGravity.y || 0;
+        const gz = e.accelerationIncludingGravity.z || 0;
+
+        const dx = gx - lastAcc.x;
+        const dy = gy - lastAcc.y;
+        const dz = gz - lastAcc.z;
+
+        lastAcc.x = gx;
+        lastAcc.y = gy;
+        lastAcc.z = gz;
+
+        // 差分の大きさ（瞬間的な衝撃）
+        currentAccMagnitude = Math.hypot(dx, dy, dz);
+      }
+
+      if (currentAccMagnitude > maxAccPeak) {
+        maxAccPeak = currentAccMagnitude;
+      }
+
+      // 衝撃検知時の判定トリガー
+      if (currentAccMagnitude >= impactThreshold) {
+        checkCheersCondition(true);
+      }
+    }
+
+    /* ==========================================================================
+       8. 超音波接近検知 & メイン監視ループ
+       ========================================================================== */
+    function startLoop() {
+      function loop() {
+        if (!isRunning) return;
+
+        let rxLevel = 0;
+
+        // 超音波スペクトラム解析
+        if (rxAnalyser && rxDataArray && FREQ_CONFIG[currentMode].rxFreq > 0) {
+          rxAnalyser.getByteFrequencyData(rxDataArray);
+
+          const sampleRate = audioCtx.sampleRate;
+          const fftSize = rxAnalyser.fftSize;
+          const targetFreq = FREQ_CONFIG[currentMode].rxFreq;
+
+          // 対象周波数のビンインデックス計算
+          const targetBin = Math.round(targetFreq / (sampleRate / fftSize));
+
+          // 端末の周波数ズレを考慮し、前後2ビン（約±46Hz）の最大値を取得
+          let maxVal = 0;
+          for (let offset = -2; offset <= 2; offset++) {
+            const bin = targetBin + offset;
+            if (bin >= 0 && bin < rxDataArray.length) {
+              if (rxDataArray[bin] > maxVal) {
+                maxVal = rxDataArray[bin];
+              }
+            }
+          }
+          rxLevel = maxVal;
+
+          // 閾値チェック
+          if (rxLevel >= rxThreshold) {
+            isProximity = true;
+            lastProximityTime = Date.now();
+          } else {
+            // 余韻時間（PROXIMITY_HOLD_MS）を過ぎたら接近解除
+            if (Date.now() - lastProximityTime > PROXIMITY_HOLD_MS) {
+              isProximity = false;
+            }
+          }
+        } else if (currentMode === 'solo') {
+          isProximity = true; // ソロモードは常に準備OK
+        }
+
+        // デバッグメーター＆UIの更新
+        updateMonitoringUI(rxLevel);
+
+        rafId = requestAnimationFrame(loop);
+      }
+
+      rafId = requestAnimationFrame(loop);
+    }
+
+    /* ==========================================================================
+       9. 乾杯判定 & 発火処理
+       ========================================================================== */
+    function checkCheersCondition(hasImpact) {
+      if (!isRunning || isCooldown) return;
+
+      const isNearby = (currentMode === 'solo') || isProximity || (Date.now() - lastProximityTime < PROXIMITY_HOLD_MS);
+
+      if (isNearby && hasImpact) {
+        triggerCheers();
+      }
+    }
+
+    function triggerCheers() {
+      isCooldown = true;
+
+      // 1. サウンド再生（ゼロ遅延）
+      playClinkSound();
+
+      // 2. バイブレーション（対応端末のみ）
+      if (navigator.vibrate) {
+        try {
+          navigator.vibrate([30, 40, 70]);
+        } catch (e) {}
+      }
+
+      // 3. 視覚エフェクト
+      // フラッシュ
+      flashOverlay.classList.add('flash');
+      setTimeout(() => flashOverlay.classList.remove('flash'), 120);
+
+      // グラスアニメーション
+      stageCard.classList.add('cheers-burst');
+      setTimeout(() => stageCard.classList.remove('cheers-burst'), 600);
+
+      // パーティクル噴射
+      spawnParticles();
+
+      // ステータステキストの一時変更
+      mainStatusText.innerHTML = '🎉 <strong>乾杯成立！！！ (Cheers!)</strong>';
+
+      // 4. クールダウンプログレスバー
+      cooldownBar.classList.add('active');
+      cooldownProgress.style.transition = 'none';
+      cooldownProgress.style.transform = 'scaleX(1)';
+
+      setTimeout(() => {
+        cooldownProgress.style.transition = `transform ${cooldownDurationMs}ms linear`;
+        cooldownProgress.style.transform = 'scaleX(0)';
+      }, 20);
+
+      // クールダウン解除
+      setTimeout(() => {
+        isCooldown = false;
+        cooldownBar.classList.remove('active');
+        updateUIStatus();
+      }, cooldownDurationMs);
+    }
+
+    /* ==========================================================================
+       10. UI状態表示 & デバッグ更新
+       ========================================================================== */
+    function updateUIStatus() {
+      if (!isRunning) {
+        mainStatusText.textContent = '開始ボタンを押してください';
+        statusDot.className = 'pulse-dot';
+        stageCard.classList.remove('proximity-active');
+        return;
+      }
+
+      if (isCooldown) return;
+
+      const conf = FREQ_CONFIG[currentMode];
+      pillTx.textContent = `📡 発信: ${conf.labelTx}`;
+      pillRx.textContent = `📶 接近: ${isProximity ? '接近中！' : '離れています'}`;
+      pillMotion.textContent = `💥 衝撃: 待機`;
+
+      pillTx.classList.toggle('active', conf.txFreq > 0);
+      pillRx.classList.toggle('active', isProximity);
+
+      if (currentMode === 'solo') {
+        mainStatusText.textContent = 'スマホをコツンと振ってください';
+        statusDot.className = 'pulse-dot waiting';
+        stageCard.classList.remove('proximity-active');
+      } else {
+        if (isProximity) {
+          mainStatusText.textContent = '接近中！コツンと乾杯してください！';
+          statusDot.className = 'pulse-dot active';
+          stageCard.classList.add('proximity-active');
+        } else {
+          mainStatusText.textContent = 'もう1台のスマホに近づけてください';
+          statusDot.className = 'pulse-dot waiting';
+          stageCard.classList.remove('proximity-active');
+        }
+      }
+    }
+
+    function updateMonitoringUI(rxLevel) {
+      if (debugAccordion.classList.contains('open')) {
+        // 超音波メーター
+        dbgRxVal.textContent = rxLevel;
+        const rxPercent = Math.min(100, (rxLevel / 255) * 100);
+        meterRxFill.style.width = `${rxPercent}%`;
+        meterRxFill.classList.toggle('proximity-reached', rxLevel >= rxThreshold);
+
+        // 加速度メーター
+        dbgAccVal.textContent = currentAccMagnitude.toFixed(1);
+        const accPercent = Math.min(100, (currentAccMagnitude / 35.0) * 100);
+        meterAccFill.style.width = `${accPercent}%`;
+      }
+
+      // 常時ステータス反映
+      if (!isCooldown) {
+        updateUIStatus();
+      }
+    }
+
+    /* ==========================================================================
+       11. パーティクルシステム（Canvas）
+       ========================================================================== */
+    const canvas = document.getElementById('fxCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 8 + 3;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed - 2.5; // 少し上向きバイアス
+        this.gravity = 0.22;
+        this.size = Math.random() * 6 + 3;
+        this.alpha = 1;
+        this.decay = Math.random() * 0.02 + 0.015;
+        this.rotation = Math.random() * 360;
+        this.rotSpeed = (Math.random() - 0.5) * 12;
+
+        // 金色〜シャンパンゴールドのカラーバリエーション
+        const colors = ['#fce08a', '#f5cf68', '#dfa732', '#ffffff', '#ffd700'];
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += this.gravity;
+        this.vx *= 0.98;
+        this.alpha -= this.decay;
+        this.rotation += this.rotSpeed;
+      }
+
+      draw(c) {
+        c.save();
+        c.globalAlpha = Math.max(0, this.alpha);
+        c.translate(this.x, this.y);
+        c.rotate((this.rotation * Math.PI) / 180);
+        c.fillStyle = this.color;
+        // キラキラ光るダイヤ型
+        c.beginPath();
+        c.moveTo(0, -this.size);
+        c.lineTo(this.size * 0.7, 0);
+        c.lineTo(0, this.size);
+        c.lineTo(-this.size * 0.7, 0);
+        c.closePath();
+        c.fill();
+        c.restore();
+      }
+    }
+
+    function spawnParticles() {
+      const rect = stageCard.getBoundingClientRect();
+      const originX = rect.left + rect.width / 2;
+      const originY = rect.top + rect.height * 0.42;
+
+      for (let i = 0; i < 50; i++) {
+        particles.push(new Particle(originX, originY));
+      }
+    }
+
+    function renderParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.update();
+        p.draw(ctx);
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+      requestAnimationFrame(renderParticles);
+    }
+    renderParticles();
+
+    /* ==========================================================================
+       12. コントロール & スライダーイベント
+       ========================================================================== */
+    btnStart.addEventListener('click', startApp);
+
+    // アコーディオン開閉
+    debugHeader.addEventListener('click', () => {
+      debugAccordion.classList.toggle('open');
+    });
+
+    // 超音波閾値スライダー
+    sliderRxThresh.addEventListener('input', (e) => {
+      rxThreshold = parseInt(e.target.value, 10);
+      valRxThresh.textContent = rxThreshold;
+      markerRxThresh.style.left = `${(rxThreshold / 240) * 100}%`;
+    });
+
+    // 加速度閾値スライダー
+    sliderAccThresh.addEventListener('input', (e) => {
+      impactThreshold = parseFloat(e.target.value);
+      valAccThresh.textContent = `${impactThreshold.toFixed(1)} m/s²`;
+      markerAccThresh.style.left = `${(impactThreshold / 35.0) * 100}%`;
+    });
+
+    // 発信ゲインスライダー
+    sliderTxGain.addEventListener('input', (e) => {
+      const pct = parseInt(e.target.value, 10);
+      txVolume = pct / 100.0;
+      valTxGain.textContent = `${pct}%`;
+      if (txGainNode && audioCtx && FREQ_CONFIG[currentMode].txFreq > 0) {
+        txGainNode.gain.setValueAtTime(txVolume, audioCtx.currentTime);
+      }
+    });
+
+    // サウンドテストボタン
+    btnTestSound.addEventListener('click', () => {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+      }
+      playClinkSound();
+    });
+
+    // ピークリセット
+    btnResetPeak.addEventListener('click', () => {
+      maxAccPeak = 0;
+      dbgAccVal.textContent = '0.0';
+    });
+
+    // 初期マーカー位置同期
+    markerRxThresh.style.left = `${(rxThreshold / 240) * 100}%`;
+    markerAccThresh.style.left = `${(impactThreshold / 35.0) * 100}%`;
+
+  </script>
+</body>
+</html>
