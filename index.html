@@ -7,7 +7,7 @@
   <style>
     :root {
       --bg-color: #0b0d13;
-      --card-bg: rgba(23, 27, 38, 0.78);
+      --card-bg: rgba(23, 27, 38, 0.82);
       --card-border: rgba(212, 175, 55, 0.25);
       --gold-primary: #f5cf68;
       --gold-gradient: linear-gradient(135deg, #fce08a 0%, #dfa732 50%, #b8860b 100%);
@@ -83,8 +83,8 @@
       z-index: 50;
     }
 
-    /* メインコンテナ */
-    .app-container {
+    /* アプリ全体レイアウト */
+    .app-viewport {
       position: relative;
       z-index: 10;
       flex: 1;
@@ -93,159 +93,129 @@
       max-width: 480px;
       margin: 0 auto;
       width: 100%;
-      padding: 14px 18px 24px;
-      gap: 14px;
+      padding: 16px 20px 24px;
+      height: 100vh;
+      height: 100dvh;
+      justify-content: space-between;
     }
 
-    /* ヘッダー */
-    header {
-      text-align: center;
-      padding-top: 4px;
+    /* ヘッダー（シンプル＆ミニマル） */
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      padding: 4px 0 8px;
     }
 
     .app-title {
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 800;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
       background: var(--gold-gradient);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-    }
-
-    .app-subtitle {
-      font-size: 11px;
-      color: var(--text-sub);
-      margin-top: 3px;
-      letter-spacing: 0.5px;
-    }
-
-    /* セレクター共通 */
-    .selector-block {
-      display: flex;
-      flex-direction: column;
       gap: 6px;
     }
 
-    .selector-header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 4px;
-    }
-
-    .selector-label {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--gold-primary);
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .selector-pill-group {
-      display: flex;
-      background: rgba(15, 18, 26, 0.88);
+    /* 設定ボタン（歯車アイコン） */
+    .btn-settings-toggle {
+      background: rgba(255, 255, 255, 0.07);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 3px;
-      gap: 3px;
+      color: var(--gold-primary);
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+    .btn-settings-toggle:active {
+      transform: scale(0.92);
+      background: rgba(245, 207, 104, 0.2);
+    }
+    .btn-settings-toggle svg {
+      width: 20px;
+      height: 20px;
     }
 
-    .selector-btn {
+    /* メインコンテンツ（赤枠のステージカードを中央にゆったり配置） */
+    .main-stage-container {
       flex: 1;
-      background: transparent;
-      border: none;
-      color: var(--text-sub);
-      font-size: 12px;
-      font-weight: 600;
-      padding: 8px 3px;
-      border-radius: 9px;
-      cursor: pointer;
-      transition: all 0.25s ease;
       display: flex;
       flex-direction: column;
+      justify-content: center;
       align-items: center;
-      gap: 2px;
+      width: 100%;
+      padding: 10px 0;
     }
 
-    .selector-btn .sub-text {
-      font-size: 9px;
-      opacity: 0.75;
-      font-weight: normal;
-    }
-
-    .selector-btn.active {
-      background: var(--gold-gradient);
-      color: #1a1300;
-      box-shadow: 0 2px 10px var(--gold-glow);
-    }
-    .selector-btn.active .sub-text {
-      color: #2b1f02;
-    }
-
-    /* Cin cin! 選択時のピンクゴールドアクセント */
-    .selector-btn.cincin-active.active {
-      background: var(--cincin-gradient);
-      color: #fff;
-      box-shadow: 0 2px 12px rgba(225, 29, 72, 0.4);
-    }
-    .selector-btn.cincin-active.active .sub-text {
-      color: #fff0f5;
-    }
-
-    .mode-hint {
+    /* 現在の設定を示すミニマムバッジ（タップで設定を開く） */
+    .current-config-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       font-size: 11px;
-      color: #d1b46a;
-      text-align: center;
-      min-height: 16px;
-      line-height: 1.4;
+      font-weight: 600;
+      color: var(--gold-primary);
+      background: rgba(245, 207, 104, 0.1);
+      border: 1px solid rgba(245, 207, 104, 0.25);
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .current-config-pill:active {
+      background: rgba(245, 207, 104, 0.2);
     }
 
-    /* メインステージ */
+    /* 赤枠のステージカード本体 */
     .stage-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-radius: 20px;
-      padding: 22px 18px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 24px;
+      padding: 34px 22px 28px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 250px;
+      width: 100%;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55);
       transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     .stage-card.proximity-active {
       border-color: rgba(245, 207, 104, 0.85);
-      box-shadow: 0 0 35px rgba(245, 207, 104, 0.4), inset 0 0 22px rgba(245, 207, 104, 0.18);
+      box-shadow: 0 0 40px rgba(245, 207, 104, 0.45), inset 0 0 25px rgba(245, 207, 104, 0.2);
     }
 
-    /* グラスコンテナ */
+    /* グラスアニメーション */
     .glasses-container {
       position: relative;
-      width: 140px;
-      height: 105px;
+      width: 150px;
+      height: 115px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 10px;
+      margin-bottom: 16px;
     }
 
     .glass-svg {
-      width: 66px;
-      height: 84px;
+      width: 72px;
+      height: 92px;
       position: absolute;
       transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s;
-      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
     }
 
     .glass-left {
@@ -262,15 +232,15 @@
 
     /* 接近時のグラス引き寄せ */
     .proximity-active .glass-left {
-      transform: translateX(12px) rotate(4deg);
-      filter: drop-shadow(0 0 14px rgba(245, 207, 104, 0.7));
+      transform: translateX(14px) rotate(4deg);
+      filter: drop-shadow(0 0 16px rgba(245, 207, 104, 0.75));
     }
     .proximity-active .glass-right {
-      transform: translateX(-12px) rotate(-4deg);
-      filter: drop-shadow(0 0 14px rgba(245, 207, 104, 0.7));
+      transform: translateX(-14px) rotate(-4deg);
+      filter: drop-shadow(0 0 16px rgba(245, 207, 104, 0.75));
     }
 
-    /* 乾杯アニメーション 1: クリスタル（シングルクラップ） */
+    /* 乾杯アニメーション 1: クリスタル */
     .stage-card.cheers-burst .glass-left {
       animation: clinkLeft 0.55s ease-out;
     }
@@ -292,7 +262,7 @@
       100% { transform: translateX(0px) rotate(10deg); }
     }
 
-    /* 乾杯アニメーション 2: Cin cin! 専用（リズミカルなダブルチリン！） */
+    /* 乾杯アニメーション 2: Cin cin! 専用ダブルチリン */
     .stage-card.cincin-burst .glass-left {
       animation: clinkDoubleLeft 0.85s cubic-bezier(0.25, 1, 0.5, 1);
     }
@@ -318,7 +288,7 @@
       100% { transform: translateX(0px) rotate(10deg); }
     }
 
-    /* Cin cin! ポップアップバナー（専用演出） */
+    /* Cin cin! ポップアップバナー */
     .cincin-popup-wrap {
       position: absolute;
       top: 50%;
@@ -337,7 +307,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(circle, rgba(20, 10, 15, 0.95) 0%, rgba(10, 5, 8, 0.88) 100%);
+      background: radial-gradient(circle, rgba(20, 10, 15, 0.96) 0%, rgba(10, 5, 8, 0.9) 100%);
       border: 2px solid #ff7e79;
       box-shadow: 0 0 35px rgba(225, 29, 72, 0.7), 0 0 70px rgba(245, 207, 104, 0.5);
       border-radius: 28px;
@@ -388,25 +358,25 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
       width: 100%;
     }
 
     .primary-status {
-      font-size: 17px;
+      font-size: 19px;
       font-weight: 700;
       letter-spacing: 0.5px;
       color: var(--text-main);
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       text-align: center;
       min-height: 28px;
     }
 
     .pulse-dot {
-      width: 10px;
-      height: 10px;
+      width: 11px;
+      height: 11px;
       border-radius: 50%;
       background: #6b7280;
       display: inline-block;
@@ -435,14 +405,14 @@
     }
 
     .pill {
-      font-size: 11px;
-      padding: 4px 10px;
+      font-size: 12px;
+      padding: 5px 12px;
       border-radius: 20px;
       background: rgba(255, 255, 255, 0.06);
       color: var(--text-sub);
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       transition: all 0.25s;
     }
 
@@ -455,7 +425,7 @@
 
     /* スタートボタン */
     .start-btn-wrap {
-      margin-top: 10px;
+      margin-top: 18px;
       width: 100%;
       display: flex;
       justify-content: center;
@@ -465,18 +435,18 @@
       background: var(--gold-gradient);
       color: #161202;
       border: none;
-      font-size: 16px;
-      font-weight: 700;
-      padding: 13px 30px;
-      border-radius: 30px;
+      font-size: 17px;
+      font-weight: 800;
+      padding: 16px 36px;
+      border-radius: 35px;
       cursor: pointer;
-      box-shadow: 0 4px 20px var(--gold-glow);
+      box-shadow: 0 6px 24px var(--gold-glow);
       display: flex;
       align-items: center;
       gap: 10px;
       transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
       width: 100%;
-      max-width: 280px;
+      max-width: 300px;
       justify-content: center;
     }
 
@@ -498,7 +468,7 @@
       height: 3px;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 2px;
-      margin-top: 8px;
+      margin-top: 12px;
       overflow: hidden;
       opacity: 0;
       transition: opacity 0.2s;
@@ -513,48 +483,181 @@
       transform-origin: left;
     }
 
-    /* デバッグ＆感度調整パネル */
-    .debug-accordion {
-      background: var(--card-bg);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 16px;
-      overflow: hidden;
-      transition: border-color 0.3s;
+    /* ==========================================================================
+       裏画面：スライドイン・サイドバー／設定ドロワー (Drawer)
+       ========================================================================== */
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .drawer-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
     }
 
-    .debug-header {
-      padding: 12px 16px;
+    .drawer-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 88%;
+      max-width: 380px;
+      background: #0f121a;
+      border-left: 1px solid var(--card-border);
+      box-shadow: -10px 0 35px rgba(0, 0, 0, 0.7);
+      z-index: 1001;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+    .drawer-panel.open {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      padding: 18px 20px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 13px;
-      font-weight: 600;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 0;
+      background: #0f121a;
+      z-index: 10;
+    }
+
+    .drawer-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--gold-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .drawer-close-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
       color: var(--text-sub);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      font-size: 16px;
       cursor: pointer;
-      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .drawer-close-btn:active {
+      background: rgba(255, 255, 255, 0.2);
     }
 
-    .debug-header:hover {
-      color: var(--text-main);
+    .drawer-content {
+      padding: 18px 20px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
 
-    .debug-header .chevron {
-      transition: transform 0.3s;
+    /* ドロワー内の設定項目 */
+    .selector-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .selector-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px;
+    }
+
+    .selector-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gold-primary);
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .selector-pill-group {
+      display: flex;
+      background: rgba(20, 24, 34, 0.95);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .selector-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 9px 3px;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .selector-btn .sub-text {
+      font-size: 9px;
+      opacity: 0.75;
+      font-weight: normal;
+    }
+
+    .selector-btn.active {
+      background: var(--gold-gradient);
+      color: #1a1300;
+      box-shadow: 0 2px 10px var(--gold-glow);
+    }
+    .selector-btn.active .sub-text {
+      color: #2b1f02;
+    }
+
+    .selector-btn.cincin-active.active {
+      background: var(--cincin-gradient);
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(225, 29, 72, 0.4);
+    }
+    .selector-btn.cincin-active.active .sub-text {
+      color: #fff0f5;
+    }
+
+    .mode-hint {
       font-size: 11px;
-    }
-    .debug-accordion.open .debug-header .chevron {
-      transform: rotate(180deg);
+      color: #d1b46a;
+      line-height: 1.4;
+      padding: 0 4px;
     }
 
-    .debug-body {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      padding: 0 16px;
-    }
-    .debug-accordion.open .debug-body {
-      max-height: 520px;
-      padding: 8px 16px 18px;
+    /* デバッグ＆感度調整（ドロワー内） */
+    .debug-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 14px;
     }
 
     .meter-group {
@@ -661,6 +764,7 @@
       background: rgba(255, 255, 255, 0.16);
     }
 
+    /* 使い方ガイド */
     .guide-box {
       background: rgba(255, 255, 255, 0.03);
       border: 1px dashed rgba(255, 255, 255, 0.12);
@@ -693,6 +797,7 @@
       color: #fca5a5;
       display: none;
       line-height: 1.4;
+      margin-bottom: 12px;
     }
     .warning-banner.show {
       display: block;
@@ -707,216 +812,256 @@
   <!-- パーティクル描画用 Canvas -->
   <canvas id="fxCanvas"></canvas>
 
-  <div class="app-container">
+  <!-- メインビューポート -->
+  <div class="app-viewport">
 
-    <!-- ヘッダー -->
-    <header>
+    <!-- ヘッダー（シンプル＆ミニマル） -->
+    <header class="app-header">
       <div class="app-title">🥂 Cheers Clink!</div>
-      <div class="app-subtitle">超音波接近検知 × 加速度衝撃検知 スマホ乾杯</div>
+      <!-- 設定ドロワーを開くボタン -->
+      <button class="btn-settings-toggle" id="btnOpenSettings" aria-label="設定">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
     </header>
 
-    <!-- HTTPS警告バナー（非セキュア環境時） -->
+    <!-- HTTPS警告バナー（非セキュア環境時のみ） -->
     <div id="securityWarning" class="warning-banner">
       ⚠️ <strong>HTTPS環境が必要です</strong><br>
       マイクや加速度センサーの権限を取得するには、HTTPS接続（またはlocalhost）で開く必要があります。
     </div>
 
-    <!-- 1. 乾杯サウンド切り替えUI -->
-    <div class="selector-block">
-      <div class="selector-header-row">
-        <span class="selector-label">🎵 乾杯サウンド切り替え</span>
-      </div>
-      <div class="selector-pill-group" id="soundSelector">
-        <button class="selector-btn active" data-sound="crystal">
-          <span>🥂 クリスタル</span>
-          <span class="sub-text">澄んだグラス音</span>
-        </button>
-        <button class="selector-btn cincin-active" data-sound="cincin1">
-          <span>🗣️ Cin cin! ①</span>
-          <span class="sub-text">チンチンボイス 1</span>
-        </button>
-        <button class="selector-btn cincin-active" data-sound="cincin2">
-          <span>🗣️ Cin cin! ②</span>
-          <span class="sub-text">チンチンボイス 2</span>
-        </button>
-      </div>
-    </div>
+    <!-- メインコンテンツ（赤枠で囲まれたステージカード） -->
+    <main class="main-stage-container">
 
-    <!-- 2. モード選択UI（超音波の役割切り替え） -->
-    <div class="selector-block">
-      <div class="selector-header-row">
-        <span class="selector-label">📡 超音波周波数の役割</span>
-      </div>
-      <div class="selector-pill-group" id="modeSelector">
-        <button class="selector-btn active" data-mode="A">
-          <span>モード A</span>
-          <span class="sub-text">18.5k発信 / 19.5k受信</span>
-        </button>
-        <button class="selector-btn" data-mode="B">
-          <span>モード B</span>
-          <span class="sub-text">19.5k発信 / 18.5k受信</span>
-        </button>
-        <button class="selector-btn" data-mode="solo">
-          <span>ソロ</span>
-          <span class="sub-text">衝撃検知のみ</span>
-        </button>
-      </div>
-      <div class="mode-hint" id="modeHint">
-        💡 1台目を「モードA」、2台目を「モードB」に設定してください
-      </div>
-    </div>
-
-    <!-- メインステージ（乾杯ビジュアル＆状態表示） -->
-    <div class="stage-card" id="stageCard">
-
-      <!-- Cin cin! ポップアップバナー（専用演出） -->
-      <div class="cincin-popup-wrap">
-        <div class="cincin-badge" id="cincinBadge">
-          <div class="cincin-badge-text">
-            <span>✨</span>
-            <span>Cin cin!</span>
-            <span>🥂</span>
-          </div>
-          <div class="cincin-badge-sub">Salute! 乾杯!</div>
-        </div>
+      <!-- 現在のモード＆サウンド表示チップ（タップで設定を開く） -->
+      <div class="current-config-pill" id="configChip" title="タップして設定を開く">
+        <span id="chipMode">モードA</span>
+        <span>•</span>
+        <span id="chipSound">🥂 クリスタル</span>
+        <span style="opacity: 0.6; font-size: 10px;">⚙️</span>
       </div>
 
-      <!-- グラスアニメーション -->
-      <div class="glasses-container">
-        <!-- 左のグラス (シャンパングラスSVG) -->
-        <svg class="glass-svg glass-left" viewBox="0 0 64 100" fill="none">
-          <path d="M16 8 C16 38, 26 48, 30 52 L30 84 L22 84 C19 84, 19 90, 22 90 L42 90 C45 90, 45 84, 42 84 L34 84 L34 52 C38 48, 48 38, 48 8 Z" fill="url(#glassLiquid)" opacity="0.9"/>
-          <path d="M16 8 C16 38, 26 48, 30 52 L30 84 L22 84 C19 84, 19 90, 22 90 L42 90 C45 90, 45 84, 42 84 L34 84 L34 52 C38 48, 48 38, 48 8 Z" stroke="#f3e5ab" stroke-width="2.5" fill="none"/>
-          <ellipse cx="32" cy="8" rx="16" ry="4" stroke="#fce08a" stroke-width="2" fill="rgba(255,255,255,0.2)"/>
-          <path d="M22 18 C22 28, 28 36, 32 38" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round"/>
-        </svg>
+      <!-- 赤枠のステージカード -->
+      <div class="stage-card" id="stageCard">
 
-        <!-- 右のグラス (シャンパングラスSVG) -->
-        <svg class="glass-svg glass-right" viewBox="0 0 64 100" fill="none">
-          <path d="M16 8 C16 38, 26 48, 30 52 L30 84 L22 84 C19 84, 19 90, 22 90 L42 90 C45 90, 45 84, 42 84 L34 84 L34 52 C38 48, 48 38, 48 8 Z" fill="url(#glassLiquid)" opacity="0.9"/>
-          <path d="M16 8 C16 38, 26 48, 30 52 L30 84 L22 84 C19 84, 19 90, 22 90 L42 90 C45 90, 45 84, 42 84 L34 84 L34 52 C38 48, 48 38, 48 8 Z" stroke="#f3e5ab" stroke-width="2.5" fill="none"/>
-          <ellipse cx="32" cy="8" rx="16" ry="4" stroke="#fce08a" stroke-width="2" fill="rgba(255,255,255,0.2)"/>
-          <path d="M42 18 C42 28, 36 36, 32 38" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-
-        <!-- SVGグラデーション定義 -->
-        <svg width="0" height="0">
-          <defs>
-            <linearGradient id="glassLiquid" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#fff1b8" stop-opacity="0.3"/>
-              <stop offset="40%" stop-color="#f5cf68" stop-opacity="0.7"/>
-              <stop offset="100%" stop-color="#b8860b" stop-opacity="0.9"/>
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-
-      <!-- ステータス表記 -->
-      <div class="status-area">
-        <div class="primary-status" id="mainStatusText">
-          <span class="pulse-dot" id="statusDot"></span>
-          <span id="statusLabel">開始ボタンを押してください</span>
-        </div>
-
-        <div class="indicator-pills">
-          <span class="pill" id="pillTx">📡 発信: 待機</span>
-          <span class="pill" id="pillRx">📶 接近: 待機</span>
-          <span class="pill" id="pillMotion">💥 衝撃: 待機</span>
-        </div>
-
-        <!-- クールダウンバー -->
-        <div class="cooldown-bar" id="cooldownBar">
-          <div class="progress" id="cooldownProgress"></div>
-        </div>
-      </div>
-
-      <!-- スタートボタン -->
-      <div class="start-btn-wrap">
-        <button class="btn-start" id="btnStart">
-          <span>✨ 乾杯の準備をする (Start)</span>
-        </button>
-      </div>
-
-    </div>
-
-    <!-- デバッグ＆感度調整パネル -->
-    <div class="debug-accordion" id="debugAccordion">
-      <div class="debug-header" id="debugHeader">
-        <span>⚙️ モニター &amp; 感度調整 (リアルタイム)</span>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="debug-body">
-        
-        <div class="meter-group">
-          <div class="meter-label-row">
-            <span>相手の超音波 (<span id="dbgTargetFreq">19,500Hz</span>)</span>
-            <span class="val"><span id="dbgRxVal">0</span> / 255</span>
-          </div>
-          <div class="meter-track">
-            <div class="meter-fill" id="meterRxFill"></div>
-            <div class="meter-threshold-marker" id="markerRxThresh" style="left: 55%;"></div>
+        <!-- Cin cin! ポップアップバナー（専用演出） -->
+        <div class="cincin-popup-wrap">
+          <div class="cincin-badge" id="cincinBadge">
+            <div class="cincin-badge-text">
+              <span>✨</span>
+              <span>Cin cin!</span>
+              <span>🥂</span>
+            </div>
+            <div class="cincin-badge-sub">Salute! 乾杯!</div>
           </div>
         </div>
 
-        <div class="meter-group">
-          <div class="meter-label-row">
-            <span>加速度衝撃値 (Vector Norm)</span>
-            <span class="val"><span id="dbgAccVal">0.0</span> m/s²</span>
+        <!-- グラスアニメーション -->
+        <div class="glasses-container">
+          <!-- 左のグラス (シャンパングラスSVG) -->
+          <svg class="glass-svg glass-left" viewBox="0 0 64 100" fill="none">
+            <path d="M16 8 C16 38, 26 48, 30 52 L30 84 L22 84 C19 84, 19 90, 22 90 L42 90 C45 90, 45 84, 42 84 L34 84 L34 52 C38 48, 48 38, 48 8 Z" fill="url(#glassLiquid)" opacity="0.9"/>
+            <path d="M16 8 C16 38, 26 48, 30 52 L30 84 L22 84 C19 84, 19 90, 22 90 L42 90 C45 90, 45 84, 42 84 L34 84 L34 52 C38 48, 48 38, 48 8 Z" stroke="#f3e5ab" stroke-width="2.5" fill="none"/>
+            <ellipse cx="32" cy="8" rx="16" ry="4" stroke="#fce08a" stroke-width="2" fill="rgba(255,255,255,0.2)"/>
+            <path d="M22 18 C22 28, 28 36, 32 38" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+
+          <!-- 右のグラス (シャンパングラスSVG) -->
+          <svg class="glass-svg glass-right" viewBox="0 0 64 100" fill="none">
+            <path d="M16 8 C16 38, 26 48, 30 52 L30 84 L22 84 C19 84, 19 90, 22 90 L42 90 C45 90, 45 84, 42 84 L34 84 L34 52 C38 48, 48 38, 48 8 Z" fill="url(#glassLiquid)" opacity="0.9"/>
+            <path d="M16 8 C16 38, 26 48, 30 52 L30 84 L22 84 C19 84, 19 90, 22 90 L42 90 C45 90, 45 84, 42 84 L34 84 L34 52 C38 48, 48 38, 48 8 Z" stroke="#f3e5ab" stroke-width="2.5" fill="none"/>
+            <ellipse cx="32" cy="8" rx="16" ry="4" stroke="#fce08a" stroke-width="2" fill="rgba(255,255,255,0.2)"/>
+            <path d="M42 18 C42 28, 36 36, 32 38" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+
+          <!-- SVGグラデーション定義 -->
+          <svg width="0" height="0">
+            <defs>
+              <linearGradient id="glassLiquid" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#fff1b8" stop-opacity="0.3"/>
+                <stop offset="40%" stop-color="#f5cf68" stop-opacity="0.7"/>
+                <stop offset="100%" stop-color="#b8860b" stop-opacity="0.9"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+
+        <!-- ステータス表記 -->
+        <div class="status-area">
+          <div class="primary-status" id="mainStatusText">
+            <span class="pulse-dot" id="statusDot"></span>
+            <span id="statusLabel">開始ボタンを押してください</span>
           </div>
-          <div class="meter-track">
-            <div class="meter-fill" id="meterAccFill" style="background: #ec4899;"></div>
-            <div class="meter-threshold-marker" id="markerAccThresh" style="left: 45%;"></div>
+
+          <div class="indicator-pills">
+            <span class="pill" id="pillTx">📡 発信: 待機</span>
+            <span class="pill" id="pillRx">📶 接近: 待機</span>
+            <span class="pill" id="pillMotion">💥 衝撃: 待機</span>
+          </div>
+
+          <!-- クールダウンバー -->
+          <div class="cooldown-bar" id="cooldownBar">
+            <div class="progress" id="cooldownProgress"></div>
           </div>
         </div>
 
-        <div class="slider-group">
-          <div class="slider-row">
-            <span>超音波の検知閾値</span>
-            <span class="val" id="valRxThresh">140</span>
-          </div>
-          <input type="range" class="slider-input" id="sliderRxThresh" min="40" max="240" value="140">
-        </div>
-
-        <div class="slider-group">
-          <div class="slider-row">
-            <span>衝撃（加速度）検知閾値</span>
-            <span class="val" id="valAccThresh">15.0 m/s²</span>
-          </div>
-          <input type="range" class="slider-input" id="sliderAccThresh" min="6" max="35" step="0.5" value="15.0">
-        </div>
-
-        <div class="slider-group">
-          <div class="slider-row">
-            <span>超音波の発信ゲイン</span>
-            <span class="val" id="valTxGain">30%</span>
-          </div>
-          <input type="range" class="slider-input" id="sliderTxGain" min="0" max="100" value="30">
-        </div>
-
-        <div class="action-row">
-          <button class="btn-secondary" id="btnTestSound">🔔 現在の音をテスト</button>
-          <button class="btn-secondary" id="btnResetPeak">リセット</button>
+        <!-- スタートボタン -->
+        <div class="start-btn-wrap">
+          <button class="btn-start" id="btnStart">
+            <span>✨ 乾杯の準備をする (Start)</span>
+          </button>
         </div>
 
       </div>
-    </div>
+    </main>
 
-    <!-- 遊び方ガイド -->
-    <div class="guide-box">
-      <strong>🥂 使い方 (2台のスマホで乾杯)</strong>
-      <ol>
-        <li>端末Aを「モードA」、端末Bを「モードB」にします。</li>
-        <li>お好みの乾杯サウンド（クリスタル / Cin cin! ① / ②）を選択します。</li>
-        <li>両端末で「乾杯の準備をする」をタップしてマイク・モーションを許可します。</li>
-        <li>スマホを近づけて「接近中！」になったら、コツンと軽くぶつけて乾杯！</li>
-      </ol>
-    </div>
+    <!-- 下部スペース（余白調整） -->
+    <div style="height: 10px;"></div>
 
   </div>
 
+  <!-- ==========================================================================
+       裏画面：スライドイン・設定ドロワー (Drawer / Sidebar)
+       ========================================================================== -->
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+  <aside class="drawer-panel" id="drawerPanel" aria-label="設定パネル">
+    <div class="drawer-header">
+      <div class="drawer-title">
+        <span>⚙️</span>
+        <span>設定 &amp; カスタマイズ</span>
+      </div>
+      <button class="drawer-close-btn" id="btnCloseDrawer" aria-label="閉じる">✕</button>
+    </div>
+
+    <div class="drawer-content">
+
+      <!-- 1. 乾杯サウンド切り替え -->
+      <div class="selector-block">
+        <div class="selector-header-row">
+          <span class="selector-label">🎵 乾杯サウンド切り替え</span>
+        </div>
+        <div class="selector-pill-group" id="soundSelector">
+          <button class="selector-btn active" data-sound="crystal">
+            <span>🥂 クリスタル</span>
+            <span class="sub-text">澄んだグラス音</span>
+          </button>
+          <button class="selector-btn cincin-active" data-sound="cincin1">
+            <span>🗣️ Cin cin! ①</span>
+            <span class="sub-text">チンチンボイス 1</span>
+          </button>
+          <button class="selector-btn cincin-active" data-sound="cincin2">
+            <span>🗣️ Cin cin! ②</span>
+            <span class="sub-text">チンチンボイス 2</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. 超音波周波数の役割切り替え -->
+      <div class="selector-block">
+        <div class="selector-header-row">
+          <span class="selector-label">📡 超音波周波数の役割</span>
+        </div>
+        <div class="selector-pill-group" id="modeSelector">
+          <button class="selector-btn active" data-mode="A">
+            <span>モード A</span>
+            <span class="sub-text">18.5k発信/19.5k受信</span>
+          </button>
+          <button class="selector-btn" data-mode="B">
+            <span>モード B</span>
+            <span class="sub-text">19.5k発信/18.5k受信</span>
+          </button>
+          <button class="selector-btn" data-mode="solo">
+            <span>ソロ</span>
+            <span class="sub-text">衝撃検知のみ</span>
+          </button>
+        </div>
+        <div class="mode-hint" id="modeHint">
+          💡 1台目を「モードA」、2台目を「モードB」に設定してください
+        </div>
+      </div>
+
+      <!-- 3. モニター & 感度調整 -->
+      <div class="selector-block">
+        <div class="selector-header-row">
+          <span class="selector-label">📊 リアルタイム調整 &amp; 感度</span>
+        </div>
+        <div class="debug-box">
+          
+          <div class="meter-group">
+            <div class="meter-label-row">
+              <span>相手の超音波 (<span id="dbgTargetFreq">19,500Hz</span>)</span>
+              <span class="val"><span id="dbgRxVal">0</span> / 255</span>
+            </div>
+            <div class="meter-track">
+              <div class="meter-fill" id="meterRxFill"></div>
+              <div class="meter-threshold-marker" id="markerRxThresh" style="left: 55%;"></div>
+            </div>
+          </div>
+
+          <div class="meter-group">
+            <div class="meter-label-row">
+              <span>加速度衝撃値 (Vector Norm)</span>
+              <span class="val"><span id="dbgAccVal">0.0</span> m/s²</span>
+            </div>
+            <div class="meter-track">
+              <div class="meter-fill" id="meterAccFill" style="background: #ec4899;"></div>
+              <div class="meter-threshold-marker" id="markerAccThresh" style="left: 45%;"></div>
+            </div>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-row">
+              <span>超音波の検知閾値</span>
+              <span class="val" id="valRxThresh">140</span>
+            </div>
+            <input type="range" class="slider-input" id="sliderRxThresh" min="40" max="240" value="140">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-row">
+              <span>衝撃（加速度）検知閾値</span>
+              <span class="val" id="valAccThresh">15.0 m/s²</span>
+            </div>
+            <input type="range" class="slider-input" id="sliderAccThresh" min="6" max="35" step="0.5" value="15.0">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-row">
+              <span>超音波の発信ゲイン</span>
+              <span class="val" id="valTxGain">30%</span>
+            </div>
+            <input type="range" class="slider-input" id="sliderTxGain" min="0" max="100" value="30">
+          </div>
+
+          <div class="action-row">
+            <button class="btn-secondary" id="btnTestSound">🔔 現在の音をテスト</button>
+            <button class="btn-secondary" id="btnResetPeak">リセット</button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 4. 使い方ガイド -->
+      <div class="guide-box">
+        <strong>🥂 使い方 (2台のスマホで乾杯)</strong>
+        <ol>
+          <li>端末Aを「モードA」、端末Bを「モードB」にします。</li>
+          <li>お好みの乾杯サウンドを選択します。</li>
+          <li>両端末で「乾杯の準備をする」をタップしてマイク・モーションを許可します。</li>
+          <li>スマホを近づけて「接近中！」になったら、コツンと軽くぶつけて乾杯！</li>
+        </ol>
+      </div>
+
+    </div>
+  </aside>
+
   <script>
     /* ==========================================================================
-       1. 音声Base64データ（インライン埋め込み・外部ファイル不要）
+       1. 音声Base64データ
        ========================================================================== */
     const AUDIO_DATA = {
       cincin1: "data:audio/mp3;base64,//vgQAAAD/sAPCAAAAmcYAeEAAABBRRzGQCY6SiGjmMgEx0lBJABIEuQC3WQG////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+CSACQJcgFusgN////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8BRpSA/JD/9nJ0gZB4W0f1fnzJinoZ/V0EQHA6AwiN5Azf////////+Ao0pAfkh/+zk6QMg8LaP6vz5kxT0M/q6CIDgdAYRG8gZu0BLEAAHVzAAAl//vgQAAAC586xuEvytCL51jcJflaHwUtGSNvjYvgpaMkbfGxKbScaXX8hnosqgBoU5dW5Tp0MAtylWlOhqiZta+8494tHbmyqeP08Ku7/L6SrDcXdCZZcskEjhhBIiYJB4cGQma4ZlnpxLUbqXbf9E9tndLLpbI+jxppsmaabLYkmnuXbR7W8uIsohIQ0i4IKGiF9F6AYEmY6bL6Z/KLf4YYf//3/z/DD87fQ/RR7i/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+U2k40uv5DPRZVADQpy6tynToYBblKtKdDVEza195x7xaO3NlU8fp4Vd3+X0lWG4u6Eyy5ZIJHDCCREwSDw4MhM1wzLPTiWo3Uu2/6J7bO6WXS2R9HjTTZM002WxJNPcu2j2t5cRZRCQhpFwQUNEL6L0AwJMx02X0z+UW/www///v/n+GH52+h+ij3F1qr3uXZJ3bMpMZBxA9ZAHZ3LYfexnkAMM7z8IhGlyOSmO1t92nvVEDBQcHB4ICgMMBYaNERgIMiRcCghZBVDzCxUaLzCRQyowARwcXDmBoRjS8aAGRhMvnC3GYcTJn0AmYjkY0ERKHxEKx4NDAOMDB4xiPzL47M3O4zsHjJolMUlg4AwDP7XNLn0x6sjhhwMsmsUEAYAjCIsSZMJDEzaWTGCtPA1U4XBTZ8NONoM2CmzGxOMqDQIAhhsOgoTlsAwCVX3h+ahy9b1Yzdt35G+k7DEIfdl66FyNrI91p2SRSzu39jUy/crjNax+8+Za7rmt2w4Ecwrnv+rVXvcuyTu2ZSYyDiB6yAOzuWw+9jPIAYZ3n4RCNLkclMdrb7tPeqIGCg4ODwQFAYYCw0aIjAQZEi4FBCyCqHmFio0XmEihlRgAjg4uHMDQjGl40AMjCZfOFuMw4mTPoBMxHIxoIiUPiIVjwaGAcYGDxjEfmXx2ZudxnYPGTRKYpLBwBgGf2uaXPpj1ZHDDgZZNYoIAwBGERYkyYSGJm0smMFaeBqpwuCmz4acbQZsFNmNicZUGgQBDDYdBQnLYBgEqvvD81Dl63qxm7bvyN9J2GIQ+7L10LkbWR7rTskilndv7Gpl+5XGa1j958y13XNbthwI5hXPf9//vgQAAAClFSz21jQAboKlntrGgA2901QbmNgBN7pqg3MbACu223+9iJLuH0lI0yTQ/Rp98TnYnIqWRqHg65Z+ADJgwMXHQBjgjqN0fSUTAqNEYcxAcFEU8guPZ6ChAQMMQSBAIzw4xJMkGmZPo9svu9qhQYMCW3hoGpThhw4GGb1GhYkZsCZoUDVpWnJgm5iYfFfyKJgjRgExEZdMxok1Icwg4sFh5EFBrhTc+4C4SoBMmJBRgwAotiYwQPAwaChl92JtPhyx9PT/KpqkwvZ4Ul63LLDwUmETfSZUi51v2syNWB86e/WwsQLWbI47wQxL4E//5N243DrbKYLlfyUV/u8ldPnT3+3MxeK3//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////3bbb/exEl3D6SkaZJofo0++JzsTkVLI1Dwdcs/ABkwYGLjoAxwR1G6PpKJgVGiMOYgOCiKeQXHs9BQgIGGIJAgEZ4cYkmSDTMn0e2X3e1QoMGBLbw0DUpww4cDDN6jQsSM2BM0KBq0rTkwTcxMPiv5FEwRowCYiMumY0SakOYQcWCw8iCg1wpufcBcJUAmTEgowYAUWxMYIHgYNBQy+7E2nw5Y+np/lU1SYXs8KS9bllh4KTCJvpMqRc637WZGrA+dPfrYWIFrNkcd4IYl8Cf/8m7cbh1tlMFyv5KK/3eSunzp7/bmYvFaNJJJJNtEkgAEEJqSSx61fPiAiRNpSgkaBCV6lwp1912KBg4i6oq+0Boos6ly6ZcsHDEXoFbbttNF3VILlaugDbE0tNctY76aK9HaC4IYQJGVogOnpK1pBNB4NAIbbohQOiwkPyF9DBAlAShNRxT4RMV4FQBJtBwiCUbgwqMgBDlx03VZoWRF4nLT6wzL8JjqjRXLMF8IEUQZYXBUbMTAWVxTL7tiJUV7K7F8X0gRebQUr57rnKd4ytmFGx7vJ2pT2/w3Lb9vc9SUuH85fws1oYlEd5Jp8EBOBv7ZTRN4tGkkkkm2iSQACCE1JJY9avnxARIm0pQSNAhK9S4U6+67FAwcRdUVfaA0UWdS5dMuWDhiL0Ctt22mi7qkFytXQBtiaWmuWsd9NFejtBcEMIEjK0QHT0la0gmg8GgENt0QoHRYSH5C+hggSgJQmo4p8ImK8CoAk2g4RBKNwYVGQAhy46bqs0LIi8Tlp9YZl+Ex1RorlmC+ECKIMsLgqNmJgLK4pl92xEqK9ldi+L6QIvNoKV891zlO8ZWzCjY93k7Up7f4blt+3uepKXD+cv4Wa0MSiO8k0+CAnA39spom8W//vgQAAAChlQ0W9nIATYqhot7OQAnUVzRaznDZOormi1nOGytttkliJACuD4qql/GnK7JARdEyAU114sSW2kAlYutKNbalRcRK5caExLNVqlDUnIj0bd4GnkgAiBRkrsBRUd9E9xYKgEte8O3ah6PPAm2RLBQ1BELCp+EKJmgmFALBorFt2VvCxCH2xuTZSrCoaSQymDjV7CVRygAwFYhEGpa1lW5satgsyrEW+e1Ndui11Qz0viMcp5p/aaNTW6+NSexw72zK5iXVn6il+in5ihgh3L1ttI3/Jc192GHLAwhTt+IZkeFrtv84/QQG5TAY3Gqsrkkplk3rEMn//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////bbbJLESAFcHxVVL+NOV2SAi6JkAprrxYkttIBKxdaUa21Ki4iVy40JiWarVKGpORHo27wNPJABECjJXYCio76J7iwVAJa94du1D0eeBNsiWChqCIWFT8IUTNBMKAWDRWLbsreFiEPtjcmylWFQ0khlMHGr2EqjlABgKxCINS1rKtzY1bBZlWIt89qa7dFrqhnpfEY5TzT+00amt18ak9jh3tmVzEurP1FL9FPzFDBDuXrbaRv+S5r7sMOWBhCnb8QzI8LXbf5x+ggNymAxuNVZXJJTLJvWIZP622W1kgAvfLzFR0jxZsvcJIHRIHEFx1U2RCAUuDDq6gECrCCLUFiEOCGhNCUcLUvXHGwP5HgaKgiS2RAWFj/YRBbEy4oqAku50NS3d2vfetiIkiAhi7A0MkaimX1TUbivaiZQpzD1aHoQGJTgYKLBYGnRCFlK3P+ymlFClARCRK56S/SczZ1AXWWGmn3k82+0ytRsEfjL8Ur7wdM4fnHc4lBL0U0Hz9ClywJpDnuyxpsbdl0wy+zIJ+ndJFJ209FBsGtOtrvzsWmpVGW7ulA8PNPjjwMTlmWWP//3JF+7sUn69XDeX///vG59bbLayQAXvl5io6R4s2XuEkDokDiC46qbIhAKXBh1dQCBVhBFqCxCHBDQmhKOFqXrjjYH8jwNFQRJbIgLCx/sIgtiZcUVASXc6Gpbu7XvvWxESRAQxdgaGSNRTL6pqNxXtRMoU5h6tD0IDEpwMFFgsDTohCylbn/ZTSihSgIhIlc9JfpOZs6gLrLDTT7yebfaZWo2CPxl+KV94OmcPzjucSgl6KaD5+hS5YE0hz3ZY02Nuy6YZfZkE/Tukik7aeig2DWnW1352LTUqjLd3SgeHmnxx4GJyzLLH//7ki/d2KT9erhvL///3jc//vgQAAACY9Vzuu4w2bZ6rnddxhs3kGfTaznDbvIM+m1nOG3caaTaIAALkdlpIBDwz2gw2kWIoXUwbAlW4wqDwwzB1RllDAVh3CLqmd4KWsylgFOSN1Z5Idh7pw5SEzCASmjCVAGUswXegej+udfqmjqNmcqBEwIzDMYVpMg1LUJQXYIlIhF7F3KHJw33YWGZ0ztaIYVUShrHUenhaAgc3Z+aseeJFUHJabeBoUhUUlYndYe3N+JUzWxIZSyJ3Yk/1WWOU/0ueGLQTLXprtyc/NyXekVLlNP9fppq5hFs/qV5bexq3Z3fNc///8LHO53tZU9XPP//8P//pMHwCH////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+400m0QAAXI7LSQCHhntBhtIsRQupg2BKtxhUHhhmDqjLKGArDuEXVM7wUtZlLAKckbqzyQ7D3ThykJmEAlNGEqAMpZgu9A9H9c6/VNHUbM5UCJgRmGYwrSZBqWoSguwRKRCL2LuUOThvuwsMzpna0QwqolDWOo9PC0BA5uz81Y88SKoOS028DQpCopKxO6w9ub8SpmtiQylkTuxJ/qsscp/pc8MWgmWvTXbk5+bku9IqXKaf6/TTVzCLZ/Ury29jVuzu+a5///4WOdzvayp6uef//4f//SYPgEOS5ZLGSSlJaoKgmzFRiqm3ZC9YI3YwEsxOIASmCrUy00EhMW0z0KPqjpcUnVnPJKGnAxFvnHQ6HL0YwDkz46MdY6z2CBU0HaPzA0Wak4kshKrzYEa0vgvafgv+ogXCB1hZlLP1JimfudL6QtQVKNElASDoiNpd1qztvk4aLEPwFXMahpi1Igmk4bbxaHZDNxsYKHDVWYhBCjre2s3FhmX0rEU8FF2CuwyBpitsQvY18r1zmFr8eZbpaarZ5Vr58/9XaJOuMuhEHkhNylddplDYjff3Fv/+uOnTl2IP3O02tf////+uWKnP/CY7h////u3mI5LlksZJKUlqgqCbMVGKqbdkL1gjdjASzE4gBKYKtTLTQSExbTPQo+qOlxSdWc8koacDEW+cdDocvRjAOTPjox1jrPYIFTQdo/MDRZqTiSyEqvNgRrS+C9p+C/6iBcIHWFmUs/UmKZ+50vpC1BUo0SUBIOiI2l3WrO2+ThosQ/AVcxqGmLUiCaThtvFodkM3GxgocNVZiEEKOt7azcWGZfSsRTwUXYK7DIGmK2xC9jXyvXOYWvx5lulpqtnlWvnz/1dok64y6EQeSE3KV12mUNiN9/cW//646dOXYg/c7Ta1/////65Yqc/8JjuH///+7eYg//vgQAAAC+Bn0mtYy27fjPpNaxlt2UVfSaznTbMoq+k1nOm2zKTj0IBJTkq9UAbaAYmcMU79R/x1CmZEaAcIiSR/L+iAKNV1USBEe1KYvda5nyVEBCsarXhgQQDqStbRUcupypW2UOe1Z+qqc8qh9DEQIA1VDXSa0f8AKdYEkKQkt4/Mapfu2YLYSkTOMxhFpYF2pVlSkBcCU5NFIETjFaAUbAZej80ts8tuUtGsDRr1oG9fDWX5c+3EIev4tElz0/T0lPNU9n/pv///////73f+kw006HrkwselqXINq3aG3JtZ5ynv/7iw7NV2lZ9t3KLn////7xwx5/9qZY/////exm/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////MpOPQgElOSr1QBtoBiZwxTv1H/HUKZkRoBwiJJH8v6IAo1XVRIER7Upi91rmfJUQEKxqteGBBAOpK1tFRy6nKlbZQ57Vn6qpzyqH0MRAgDVUNdJrR/wAp1gSQpCS3j8xql+7ZgthKRM4zGEWlgXalWVKQFwJTk0UgROMVoBRsBl6PzS2zy25S0awNGvWgb18NZflz7cQh6/i0SXPT9PSU81T2f+m////////vd/6TDTToeuTCx6Wpcg2rdobcm1nnKe//uLDs1XaVn23couf////vHDHn/2plj////97GbIpyTVEolxyISlwS5ASfgjNYlPmIGRwQFUhQKBksdawKBDU8Nuym8HEP5GlFIXW/AQ5JBPTDKcghGsS+QAEJ+5mdozDOZa4kEtAcqRxsKgAhEDDJDF5zXS2mtabEnq9kzjcwpb9DJYxO4xm1PTWFF7SUQU54QyQtEQhQcVDgTP00W1xilNH4rDbaw9ZgiTQjn/X66Lq8wuPxGoMn7mssssu/////////+///3S2s9Tcqn88MdcuSqXWs8KatfuZYY9+rye+uWPTWgNZFOSaolEuORCUuCXICT8EZrEp8xAyOCAqkKBQMljrWBQIanht2U3g4h/I0opC634CHJIJ6YZTkEI1iXyAAhP3MztGYZzLXEgloDlSONhUAEIgYZIYvOa6W01rTYk9XsmcbmFLfoZLGJ3GM2p6awovaSiCnPCGSFoiEKDiocCZ+mi2uMUpo/FYbbWHrMESaEc/6/XRdXmFx+I1Bk/c1llll3/////////3//+6W1nqblU/nhjrlyVS61nhTVr9zLDHv1eT31yx6a0Bo//vgQAAADfpS0ms6w2zPSlpNZ1htlhjnRaznC3LDHOi1nOFu8KTltiTksEiNKunTEIBx5tSswyQmE2FyPQ2EvK8R+T7FQISD1ZTSMWDfuLt2RFftyHBGSAGIQJMM8QxkXYwrYwKStLVVA0F6mi14vBUKYUHCJcDBhl4Z8nGhukC+pFl+GYplwCostJOFynZEmjQ8qYaMWSRQXUBTMlrO+jybFixlHGDEzy7iAZ60sKEtyrRBy9rMMw1SymrGLN7u6md+LSqJ14TZ1l/////////////////e9xpspbz+a3u/h9Tf7ujSgceeLg871uk6JAuGP////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Ck5bYk5LBIjSrp0xCAcebUrMMkJhNhcj0NhLyvEfk+xUCEg9WU0jFg37i7dkRX7chwRkgBiECTDPEMZF2MK2MCkrS1VQNBepoteLwVCmFBwiXAwYZeGfJxobpAvqRZfhmKZcAqLLSThcp2RJo0PKmGjFkkUF1AUzJazvo8mxYsZRxgxM8u4gGetLChLcq0QcvazDMNUspqxize7upnfi0qideE2dZf////////////////3vcabKW8/mt7v4fU3+7o0oHHni4PO9bpOiQLhjwFORyNt2sOJEqbPkg0a11yvRlUIToaDPOWeV40W7s6IiR7ahxviwC9704wqkfl+DBPQxKBFh3iIjhIC+ksCRJFOah1NMi9QKCzZurBkGk5XaDhpbJvreVqRWJSIlrwpcYemuZI/NjWEX+iG6EMQ0nKQAMo0TAzBd4vhQQMkDFX/ayng8tKlHKXFYEwOct61hvVy9z88pVfxq3s6f/yyedUPnlGVFjhYWCT/1kZJRI0IvAU5HI23aw4kSps+SDRrXXK9GVQhOhoM85Z5XjRbuzoiJHtqHG+LAL3vTjCqR+X4ME9DEoEWHeIiOEgL6SwJEkU5qHU0yL1AoLNm6sGQaTldoOGlsm+t5WpFYlIiWvClxh6a5kj82NYRf6IboQxDScpAAyjRMDMF3i+FBAyQMVf9rKeDy0qUcpcVgTA5y3rWG9XL3PzylV/Grezp//LJ51Q+eUZUWOFhYJP/WRklEjQi//vgQAAAD/pk0OtYm27QzJodaxNt0fy7Sa1nK3I/l2k1rOVuzBKbkiTlrAamSEmsMDzWrXltSKNjTnGnXkFYEviLAC+gG8rxqTrktE0ISyN/nLXUskRnLG4FYgy1qyCWGrj2RZ/H5SwK0ksHxdRIlNYHKUiYDjoE6gtbAHACSQb2A2oFpEoCC4hcnCggOMyFkiAo5pUFJBnQN2DHg2MgYBBcOUQTqN82HKJNQzQuYXMTo1yPJ0uk0SSSTosySOitB0aldD////////////251uBnAb////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////MEpuSJOWsBqZISawwPNateW1Io2NOcadeQVgS+IsAL6AbyvGpOuS0TQhLI3+ctdSyRGcsbgViDLWrIJYauPZFn8flLArSSwfF1EiU1gcpSJgOOgTqC1sAcAJJBvYDagWkSgILiFycKCA4zIWSICjmlQUkGdA3YMeDYyBgEFw5RBOo3zYcok1DNC5hcxOjXI8nS6TRJJJOizJI6K0HRqV0P////////////bnW4GcBv////////////////////////////////////////////9Kcl1sltoAhf4EBXhLwHAMSeUweIhYZJzS1YQZfM8y9VACoBQFlrT0GSEOKPQ1+XwUztAKEEj3Cp1mqxA0s1RHogERkPatxk5dmRAJlfpf9SKGKRQNgKspjHmeonyYg4iQQRJDvJAUirdq83GZdj23x6q8B4InKmaFD0PP1hhhhzmq2dTv///////3yUSlQz6U5LrZLbQBC/wICvCXgOAYk8pg8RCwyTmlqwgy+Z5l6qAFQCgLLWnoMkIcUehr8vgpnaAUIJHuFTrNViBpZqiPRAIjIe1bjJy7MiATK/S/6kUMUigbAVZTGPM9RPkxBxEggiSHeSApFW7V5uMy7Htvj1V4DwROVM0KHoefrDDDDnNVs6nf///////vkolKhk//vgQAAAD/otUOu4wtz3xaoddxhbj4yvRaznC3nxlei1nOFvtEcltsksgAbwoCBABJldPAoAL+IS1gwoEhEEqRQIAI/aMLB84OIFCItBhIIbKVVAJUy+r9dlzxOWDYBGmdAVIIWJdTnaQoOXxay+TsgoyNchZs+LWG5Cg1aDShJq6OjLol5WaQ9PxXH7X/c1rVfnzVrnZnVzu8Mcs/++eDJwj///////gbznp////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+0RyW2ySyABvCgIEAEmV08CgAv4hLWDCgSEQSpFAgAj9owsHzg4gUIi0GEghspVUAlTL6v12XPE5YNgEaZ0BUghYl1OdpCg5fFrL5OyCjI1yFmz4tYbkKDVoNKEmro6MuiXlZpD0/Fcftf9zWtV+fNWudmdXO7wxyz/754MnCP//////+BvOen/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////xEttv1u0gACsKr50AzIjbQltHLVsTIRFlOSCCDlUBoL/JDJYt6XjQrUxLTiUTyw9FVBVnGKUYZJUHC5qjx9iqmCzF4u2207AyYrzF9EwUqjMEu3CzRgBdjLxKnBYA4AcBXJZdsC/Fj3L2H87ynt0m73cN8wu1Msu3kiOqPiJbbfrdpAAFYVXzoBmRG2hLaOWrYmQiLKckEEHKoDQX+SGSxb0vGhWpiWnEonlh6KqCrOMUowySoOFzVHj7FVMFmLxdttp2BkxXmL6JgpVGYJduFmjAC7GXiVOCwBwA4CuSy7YF+LHuXsP53lPbpN3u4b5hdqZZdvJEdUc//vgQAAACU1Ey/sY2ujNqJl/YxtdH4kvLazvbaPxJeW1ne20cAM0Q0eJb/pGFBREBdpZU2JTIL2oBS0TckCkHXpWDLWisig0NIlJYCYC2ZEcvU1mG1Sl7WepEIvJ6xtf5skXQSMOTC+JadNNDZOALPTPTrXdL0BjYoKLqppiETMOADCQkzEzDFY0JoNsSjPCosqXDXY7CXC5xAGA4FAJKcrvh58PYRyGUdEpGaIRoRUTCiR5hYeLByJRhAQzkEg4GF3LSLLro1GPlpkoimfCNuA/GO8MKTm+///vPDn/395/nrHu/t57/edfu5ZwI+/Pv0f/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+4AZoho8S3/SMKCiIC7SypsSmQXtQClom5IFIOvSsGWtFZFBoaRKSwEwFsyI5eprMNqlL2s9SIReT1ja/zZIugkYcmF8S06aaGycAWemenWu6XoDGxQUXVTTEImYcAGEhJmJmGKxoTQbYlGeFRZUuGux2EuFziAMBwKASU5XfDz4ewjkMo6JSM0QjQiomFEjzCw8WDkSjCAhnIJBwMLuWkWXXRqMfLTJRFM+EbcB+Md4YUnN9///eeHP/v7z/PWPd/bz3+86/dyzgR9+ffoyJtbnxTIbiCo05khkpQ+IvEhU4SYihqDCRqRacqIheVOhJAwIBKoAIxQKACEaAVO5QEDAbpA4MU3HhhdwkAI8JCseZoXiFR4aDB4BYqgkT5b9+g4AAAUsgChxjwkYwJhC0Z+9nAJBiiEYMLmZnJiY8ZUgF5UBif7SHxL5IaA4DGAkcHTH0M0kOSOOlRTWC4xdbBxeFAIxIUTRHg8zoYM3KzSFQztNM0vDyp45IuNtjTLSoxYGEhoyMBC4AXAZlOLCMcZQwyDX/+ngN133WJDjuQQzSG0e2nyJp85G3AoZiGKKGKkTtYV9SpxF5sbklSWU361f/u8bdj2NVf68ibW58UyG4gqNOZIZKUPiLxIVOEmIoagwkakWnKiIXlToSQMCASqACMUCgAhGgFTuUBAwG6QODFNx4YXcJACPCQrHmaF4hUeGgweAWKoJE+W/foOAAAFLIAocY8JGMCYQtGfvZwCQYohGDC5mZyYmPGVIBeVAYn+0h8S+SGgOAxgJHB0x9DNJDkjjpUU1guMXWwcXhQCMSFE0R4PM6GDNys0hUM7TTNLw8qeOSLjbY0y0qMWBhIaMjAQuAFwGZTiwjHGUMMg1//p4Ddd91iQ47kEM0htHtp8iafORtwKGYhiihipE7WFfUqcRebG5JUllN+tX/7vG3Y9jVX+s//vgQAAACu1RzusZw2TTKjndYzhsm/VhQaxnDZN+rCg1jOGysStadiQACtFClo8KKqTLAC2TYVOUdF1IUt3EnJhJ2PMn+DimgrDCEUXUB1hnBgU1rS/0i4miW5SwyPJeNda12eF1CAFOoEDImDzDhZbiUUfyBE0QcGionOglFkrLQXLNiBqFUMvjMSJyUbwe+BT0sBnSYPAz9lQKDGgudDr1y5FZD8ACeUWglNDyE9sTS4GZnDf3LcgqV8O/3CVw3eq8oJVYlr8UzO8QFBkj3puIgIUKru98T3V+zD6KqxmiOQpjAeX1bP/jBMWf+X3N5ax7vWsafn////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////2JWtOxIABWihS0eFFVJlgBbJsKnKOi6kKW7iTkwk7HmT/BxTQVhhCKLqA6wzgwKa1pf6RcTRLcpYZHkvGuta7PC6hACnUCBkTB5hwstxKKP5AiaIODRUTnQSiyVloLlmxA1CqGXxmJE5KN4PfAp6WAzpMHgZ+yoFBjQXOh165cish+ABPKLQSmh5Ce2JpcDMzhv7luQVK+Hf7hK4bvVeUEqsS1+KZneICgyR703EQEKFV3e+J7q/Zh9FVYzRHIUxgPL6tn/xgmLP/L7m8tY93rWNPzWS2SWtAAK6ywlIyZCBdwVcqEiWRvZs85IpCBdAOEKBmAgTVExrDiIlrpEUvdagcACk09UmSqGacoYUVYjITB5hk6AMpDZRhfK7qQEnvLU782/jGmvpvpcBcQVKRsMawYkCNEunKynNuGK1gRDZGgyAxkqDGQkCNnSiMyBIyTc3J43DDwLwHKGq5sGY3NfAJkASNzNlhYpSYf3H///mr+PP/tes2NtX2fmWF65DqVIDhLDSN0GPf1Ll9zzYXzcaXxL///mIxPl7E5lY3X3KqOalO4xP/zn//////41s3y8prJbJLWgAFdZYSkZMhAu4KuVCRLI3s2eckUhAugHCFAzAQJqiY1hxES10iKXutQOABSaeqTJVDNOUMKKsRkJg8wydAGUhsowvld1ICT3lqd+bfxjTX030uAuIKlI2GNYMSBGiXTlZTm3DFawIhsjQZAYyVBjISBGzpRGZAkZJubk8bhh4F4DlDVc2DMbmvgEyAJG5mywsUpMP7j///zV/Hn/2vWbG2r7PzLC9ch1KkBwlhpG6DHv6ly+55sL5uNL4l///zEYny9icysbr7lVHNSncYn/5z//////8a2b5eU//vgQAAACtVYz+sYw2TSKxn9YxhsnDFjPa3jLZOGLGe1vGWy9buskiQACtq+AutfA6FSkKBLAg5UTelvC+hMEtCEPDkAlRyCVCoJUb2Do0zUZDBs7SPV4ABgrpkKFgnDxDBnKRblqQIVBUZbcGwIiNOmqatbxY6o6mSJOYKxt43bMoFIEWkeFixSGGtRcuk8riAsIAgrIgORVY8X2jKCr3fg2Brag5QsyjVubaGm8bx84Zl0/Dv//////6z79eDoap525hHl1Vqs2tV843PT1r/+bs3nZfmG43G////OD6WAZRVk//vnf/v////////PxsdwVnvIf/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+t3WSRIABW1fAXWvgdCpSFAlgQcqJvS3hfQmCWhCHhyASo5BKhUEqN7B0aZqMhg2dpHq8AAwV0yFCwTh4hgzlIty1IEKgqMtuDYERGnTVNWt4sdUdTJEnMFY28btmUCkCLSPCxYpDDWouXSeVxAWEAQVkQHIqseL7RlBV7vwbA1tQcoWZRq3NtDTeN4+cMy6fh3//////9Z9+vB0NU87cwjy6q1WbWq+cbnp61//N2bzsvzDcbjf///nB9LAMoqyf/3zv/3////////n42O4Kz3kNU7ZJokiSraIA0cGBCvnStLuIKlnWBGXgqOoCBGTFkku2RNOBqUBKexQJ/nSICoDWfsfRFdJdD9EgFfhhAWItans2BaS1VAzEMzrGvFYQcJAk/FKiEqsXWTdfQSWaiiMUZSJoiEkaEGhmTCItc7sTaMynwMYcJhgIpGqEs9V4oITDNwR2SzawsEjYRRDxLohRlDkncpiJAqyrhj1D2VX+/vv//8uc7u5vD5mU0upTPpiNcjLpJV1ZfKL3/QuLdwzeC7Nf//+PyqelN6e/WPcP/8//////PuPN7va4n8uHSncT1TtkmiSJKtogDRwYEK+dK0u4gqWdYEZeCo6gIEZMWSS7ZE04GpQEp7FAn+dIgKgNZ+x9EV0l0P0SAV+GEBYi1qezYFpLVUDMQzOsa8VhBwkCT8UqISqxdZN19BJZqKIxRlImiISRoQaGZMIi1zuxNozKfAxhwmGAikaoSz1XighMM3BHZLNrCwSNhFEPEuiFGUOSdymIkCrKuGPUPZVf7++///y5zu7m8PmZTS6lM+mI1yMuklXVl8ovf9C4t3DN4Ls1///4/Kp6U3p79Y9w//z/////8+483u9rify4dKdxM//vgQAAACWtmzet5w2bwbNm9bzhs3SGjU6xrLbOkNGp1jWW2ZSTScYABLkhcdki/jWkQ9GXMyIBIaMLaTXQ8HB5ZkxstIgd2Wng0kaLXS1ELAL1YPBRlNERCXyPq7i6QwSILyy6+CQ0LnHs0nEKhgo83RWVsdEAiAxtWkYt0bNNKzruEYTzCAoQCqCoINXs/ix2Hwl22hwLA7hQyFwEXzGhg6bylT9sbmIbg6HVBku1zL+YSWZSMcCaV8+U5yfvU1HO1bFuk+ZvWss4+5Ufgi7Ty9pNtOeCrEmnXgpOU1+9/7qRrkVtZ4///83Wq/Vzxzv5d7vPuNexz/3Ws18959vZZ75+v/f///h///M+/395WO2IGH////////////////////////////////////////////////////////////////////////////////+ykmk4wACXJC47JF/GtIh6MuZkQCQ0YW0muh4ODyzJjZaRA7stPBpI0WulqIWAXqweCjKaIiEvkfV3F0hgkQXll18EhoXOPZpOIVDBR5uisrY6IBEBjatIxbo2aaVnXcIwnmEBQgFUFQQavZ/FjsPhLttDgWB3ChkLgIvmNDB03lKn7Y3MQ3B0OqDJdrmX8wksykY4E0r58pzk/epqOdq2LdJ8zetZZx9yo/BF2nl7Sbac8FWJNOvBScpr97/3UjXIrazx///5utV+rnjnfy73efca9jn/utZr57z7eyz3z9f+////D//+Z9/v7ysdsQMOS3LdqSk5bcxIuj0k4Rb1IhAUfu0eZFCjc3odkwxRPOWWQatkqgESBK9H+YlZbx2HZJQZZRpjHVUjmowUUaYi6DjzexZW5FN+6zKggI/kjLmmGCJqwKgUBwGAYkAquNt1LgQJBMkkcOvC15uNFEIpYc90mpReG77MGEMtBA6aRoppiDIMDMSQhcyfj+dLxv5h5pa9Li/vHH6F9Ksqh+TPU+qyn1sr9TaDBHalsnln48///L8u///z9wbTZ4SSeyyp+fQuHQ9+U3u/hvGNLshUpjaHXDc1Sf//////vH///3h//9XLLP62Eh5Lct2pKTltzEi6PSThFvUiEBR+7R5kUKNzeh2TDFE85ZZBq2SqARIEr0f5iVlvHYdklBllGmMdVSOajBRRpiLoOPN7FlbkU37rMqCAj+SMuaYYImrAqBQHAYBiQCq423UuBAkEySRw68LXm40UQilhz3SalF4bvswYQy0EDppGimmIMgwMxJCFzJ+P50vG/mHmlr0uL+8cfoX0qyqH5M9T6rKfWyv1NoMEdqWyeWfjz//8vy7///P3BtNnhJJ7LKn59C4dD35Te7+G8Y0uyFSmNodcNzVJ//////+8f///eH//1css/rYSE//vgQAAACb5o1Xsao2zezRqvY1RtnZWjR6zrDZOytGj1nWGygRQ1RFVSCnJdlpKzaJOEytPcIlE92wuWDEEwrsMEhSBK1sRD1vctBgRj9mJGDCOrDQiEkQNmjrkgw9QwFCa8GGIBzFTFnlu7gpfRVGMBYHKZcn4EIckBWxBAJITQZ0Z4KCCmTp0qJGJuTy0iPKxDhxGQyRNDOBIMLlHAA8OAa3Ak4HYJcDe4aSfHyQFOiXqyOU/1lIn3jRIQoCvCpi4hiiywGhgyCx0kgpX/9qxPJ0tmAZCIQvxySXURoZcK5cj4WfjpIeXBZwWlkialkGwcTJvLpm6bepvp1p0P5wqkT//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+BFDVEVVIKcl2WkrNok4TK09wiUT3bC5YMQTCuwwSFIErWxEPW9y0GBGP2YkYMI6sNCISRA2aOuSDD1DAUJrwYYgHMVMWeW7uCl9FUYwFgcplyfgQhyQFbEEAkhNBnRngoIKZOnSokYm5PLSI8rEOHEZDJE0M4EgwuUcADw4BrcCTgdglwN7hpJ8fJAU6JerI5T/WUifeNEhCgK8KmLiGKLLAaGDILHSSClf/2rE8nS2YBkIhC/HJJdRGhlwrlyPhZ+Okh5cFnBaWSJqWQbBxMm8umbpt6m+nWnQ/nCqRPAEqttAAub/pbGLLBBB0jFD8WC0yNU7AYqMmsvpHcyo9VtVaYXCMfp33BxqORCMMNzZmYUmmbMAwUaiUDx5dQEAjFHhZcl+gLLXjQGHMoguN32Bl7meLCF/ASKUCTETUVvS9LlgI6Ha3QVblqjuY2eTdbPkftX85VWfRWwL/V6u1eaSzaw7Lr1+1Xyi9evBdik//sb1RP9hM1YZiztMiTiVhdxrQcmq9MP/l/////////P+cchw4HmH119qOQbTug0O9TxOIXo3jKYJoEBLMFTrvAnVBIbmssL8p5//9yj///6X7tj6X////61FNYAlVtoAFzf9LYxZYIIOkYofiwWmRqnYDFRk1l9I7mVHqtqrTC4Rj9O+4ONRyIRhhubMzCk0zZgGCjUSgePLqAgEYo8LLkv0BZa8aAw5lEFxu+wMvczxYQv4CRSgSYiait6XpcsBHQ7W6CrctUdzGzybrZ8j9q/nKqz6K2Bf6vV2rzSWbWHZdev2q+UXr14LsUn/9jeqJ/sJmrDMWdpkScSsLuNaDk1Xph/8v////////5/zjkOHA8w+uvtRyDad0Gh3qeJxC9G8ZTBNAgJZgqdd4E6oJDc1lhflPP//uUf///S/dsfS/////Wopo//vgQAAACipj0Ws5w2TdzHotZzhsnNGfRazrDZOaM+i1nWGypISkbQACm3yDo0u/gTemZC1sj3zTIcbokjEl3GA8Xqd1zBIVr0UTfLVO3DowBNw9JxgdEGYR3PNoOKRuBEwUXKAI2I7QV1MwC0K9ZfdZFNIgokvF8p1G5xcUlBcrhO22jUt2e9zzrdy5V5UjtrWSfr6W6Y0KSDg5D41B3GY06tLrkappyHbG5b/6hmRVqF/rFiIwG59yCS5rJpK/jQpRV7qk5/////////7lb6SNTIeVDGePMo0IQOznVbvyGL7DPm2EMniLLUOj9U6lq4Z76/bfLt/VJ9yx//u3//9T/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+khKRtAAKbfIOjS7+BN6ZkLWyPfNMhxuiSMSXcYDxep3XMEhWvRRN8tU7cOjAE3D0nGB0QZhHc82g4pG4ETBRcoAjYjtBXUzALQr1l91kU0iCiS8XynUbnFxSUFyuE7baNS3Z73POt3LlXlSO2tZJ+vpbpjQpIODkPjUHcZjTq0uuRqmnIdsblv/qGZFWoX+sWIjAbn3IJLmsmkr+NClFXuqTn/////////uVvpI1Mh5UMZ48yjQhA7OdVu/IYvsM+bYQyeIstQ6P1TqWrhnvr9t8u39Un3LH/+7f//1KCC222AApt+zEuA8YIpRrll4fVnbiL6MMNwAFvCIRP4jQbGHkbRYI/twdGKLNcZcICyYkqTtJujfMzAEgeJwyn4ZggTF7LyJMWoBaOkz8UFTjlx1sQGrFJ4YAUPik4vKNc/DmUtfqbr2KS1nLJVNxyAXEcJfYZGaTfMoZmVzzu5aqVrUOO/v+W+49/f946WfeyHGJ0qgjySNsr2/+r/P/////////cofyWSsRHl9X3DkdV0lv0d1hbO5BQOzjVgoWFEnGKqnDgN7AaaUdpKN9eUMm1GbsBSHlzl2VfXv0kOzd//uTs/yggtttgAKbfsxLgPGCKUa5ZeH1Z24i+jDDcABbwiET+I0Gxh5G0WCP7cHRiizXGXCAsmJKk7Sbo3zMwBIHicMp+GYIExey8iTFqAWjpM/FBU45cdbEBqxSeGAFD4pOLyjXPw5lLX6m69iktZyyVTccgFxHCX2GRmk3zKGZlc87uWqla1Djv7/lvuPf3/eOln3shxidKoI8kjbK9v/q/z/////////3KH8lkrER5fV9w5HVdJb9HdYWzuQUDs41YKFhRJxiqpw4DewGmlHaSjfXlDJtRm7AUh5c5dlX179JDs3f/7k7P8//vgQAAAC19n0ms4m2bV7PpNZxNs2uGjQ6znLZNcNGh1nOWypRTjsgALm/6cwWDeIyuAwZ2VZgOm5V5HJmstYaeKpMSerDVIZehD8mJD0bLZvzNpLAgL/ZwGPtd6Bg9T9Wo8Nff7bVF666vGdwdBAK/FOOIC3ohw1AF8CZFYTYFmTdM0W5iTRtQHJZTGrJFk0OCmBbyGNiJALtEZFkvm550naTxPOYsfUYfolI0Om5VYiAtwDRERzhXSSVR//8sDNkisZUSRky6SSDCVEKXyBDgNDRIvuiGIVGw6gLCI00G4JigpZYJtekUzpWQUfc9MDYmFHD+cLx0vsf///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////0opx2QAFzf9OYLBvEZXAYM7KswHTcq8jkzWWsNPFUmJPVhqkMvQh+TEh6Nls35m0lgQF/s4DH2u9Awep+rUeGvv9tqi9ddXjO4OggFfinHEBb0Q4agC+BMisJsCzJumaLcxJo2oDkspjVkiyaHBTAt5DGxEgF2iMiyXzc86TtJ4nnMWPqMP0SkaHTcqsRAW4BoiI5wrpJKo//+WBmyRWMqJIyZdJJBhKiFL5AhwGhokX3RDEKjYdQFhEaaDcExQUssE2vSKZ0rIKPuemBsTCjh/OF46X2KCWlG2AC5tssVFalDuygmPCqJxlFp1zpaosdlRqJpk1ICYrRZkoa/aWoizVujgCymiNlMHsIVh9lBPJDcWYgHLS+XFz6+FOuqjyHQGuQO0oHXKaP4wgXJYi/IXAatMXO5a+dpsI1W73Cl5WmorBKmyg0EoCwhhYOynvDcIq3P/9S38c7Wpvn///hKoLkGM229LCFlvZeysd3++8//5////rD60yyTGvhObo4A/VBD8txxr8+xqpKoH1XTBge9WieHPrXe3LGfK+H4fM83lVpc9YYVOf9nCloJaUbYALm2yxUVqUO7KCY8KonGUWnXOlqix2VGommTUgJitFmShr9paiLNW6OALKaI2UwewhWH2UE8kNxZiActL5cXPr4U66qPIdAa5A7Sgdcpo/jCBcliL8hcBq0xc7lr52mwjVbvcKXlaaisEqbKDQSgLCGFg7Ke8Nwirc//1Lfxztam+f//+EqguQYzbb0sIWW9l7Kx3f77z//n///+sPrTLJMa+E5ujgD9UEPy3HGvz7GqkqgfVdMGB71aJ4c+td7csZ8r4fh8zzeVWlz1hhU5/2cKU//vgQAAADd9o0Ws5k2TL7RotZzJsloFlRazmDbLQLKi1nMG2xZSVtYBLu3y+SzkNndOEBoyDhoSpJcioC0GmtgKoSCtIeDcETZ2Yxqo4qnYBh56CEJxWEsCKip2NdxjqCuVKWCCYKWtHSCylrR34uYkobJZeWCAhUiKAC7iaDPE+DYNHlBa5lQc4aqsquxoH9EanCFCDQcIgMF6gwkVisOeOxb1pOUj/+ZukUzZozg7i8WSQRWYutBkG6VX05wmimQVAgoyKJsUDRQ5QuImECPdpsUDEtECHOSFqHcxSIYfbRdaKXmvWezZSTKRTTUaP////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////iykrawCXdvl8lnIbO6cIDRkHDQlSS5FQFoNNbAVQkFaQ8G4ImzsxjVRxVOwDDz0EITisJYEVFTsa7jHUFcqUsEEwUtaOkFlLWjvxcxJQ2Sy8sEBCpEUAF3E0GeJ8GwaPKC1zKg5w1VZVdjQP6I1OEKEGg4RAYL1BhIrFYc8di3rScpH/8zdIpmzRnB3F4skgisxdaDIN0qvpzhNFMgqBBRkUTYoGihyhcRMIEe7TYoGJaIEOckLUO5ikQw+2i60UvNes9mykmUimmo0flFJSVklOtuMFSTpDluoHfZwV7PxYKgcjlEEiyC3ZgKFDxsTlS2CYKkSoEjrbRC6I0SrOYEp2QvQjoFg2sw6wBDiUAytF8FKzs+xlbmcdbKXWgQLpGYGGXQstC5wLehc4IQUQXEmcNkDYqompx7IssxRlkxOj6IkJyDVI/ALwNkjBKYskZkkSs3v/YxSlFqiHFatnVU69LR7UtVNzOigl2mK1pGOnUktFFzicwSP/w7RLHQsrlFJSVklOtuMFSTpDluoHfZwV7PxYKgcjlEEiyC3ZgKFDxsTlS2CYKkSoEjrbRC6I0SrOYEp2QvQjoFg2sw6wBDiUAytF8FKzs+xlbmcdbKXWgQLpGYGGXQstC5wLehc4IQUQXEmcNkDYqompx7IssxRlkxOj6IkJyDVI/ALwNkjBKYskZkkSs3v/YxSlFqiHFatnVU69LR7UtVNzOigl2mK1pGOnUktFFzicwSP/w7RLHQso//vgQAAAD/lmUes4m27hrMo9ZxNt0PGXSazmbbIeMuk1nM22xZbbmbScgbjXyASuaG48WoaSEB3KvH8YgVhwKqkZQ7+ysggumH5oiEle5AqYAg9owbOX0C0wqlKBnhlW/zJH6EKEfm+ZSCvPPda6sSGbrcizMMuGNGFxBfkC4Ay8I+JINkFLFU2WiakafLq1IrU1mqS9B1n232////UvV1//rsy2+p7rrbX+tzye9tlP6/XqRamaPJn//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+LLbczaTkDca+QCVzQ3Hi1DSQgO5V4/jECsOBVUjKHf2VkEF0w/NEQkr3IFTAEHtGDZy+gWmFUpQM8Mq3+ZI/QhQj83zKQV557rXViQzdbkWZhlwxowuIL8gXAGXhHxJBsgpYqmy0TUjT5dWpFams1SXoOs+2+3///6l6uv/9dmW31Pddba/1ueT3tsp/X69SLUzR5M//////////////////////////////////////////////////////////////////////////////////////////////////////6Wo25pJJYA46SHGSDOS0nxIXDHDWGrlupdTw8LZS+VEIhWDOxNqKk51+y1cpeNA1KOCFUB4kBQqWjlIDJDDZcBQH4TDTLAUEw12BCoO5zR0wDFRbZplQEWBNoBmRBxqUhziwkRZbl0nTEwSMWSl11P/2Rf/////////1P/b/9X/qS/1ofncJrpajbmkklgDjpIcZIM5LSfEhcMcNYauW6l1PDwtlL5UQiFYM7E2oqTnX7LVyl40DUo4IVQHiQFCpaOUgMkMNlwFAfhMNMsBQTDXYEKg7nNHTAMVFtmmVARYE2gGZEHGpSHOLCRFluXSdMTBIxZKXXU//ZF//////////U/9v/1f+pL/Wh+dwms//vgQAAAD/kgUGs4yk0rpAoNZxlJjFSJQazjCXmKkSg1nGEvoRTTkbbjAACYqXUpMN8MVcplQncvd034GoZwaUJV9UHXEhIQ+zOpHEeiIjy4tAIh52AwzYugmcDDRctY8iUEARUOJpAhNQJ3VnKQe+YbkAmiIZ8FdogtPRsFx3ccqHZXkIlCTvT//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////9CKacjbcYAATFS6lJhvhirlMqE7l7um/A1DODShKvqg64kJCH2Z1I4j0REeXFoBEPOwGGbF0EzgYaLlrHkSggCKhxNIEJqBO6s5SD3zDcgE0RDPgrtEFp6NguO7jlQ7K8hEoSd6f////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////pJaVbiVzAACQSFsXOYUiXpHxMwRltA6iBLPQ6pVqwIXUHZx5ELdyUgk8Du0icYlMSjL1k2L1VfjbyqNN/GWxA5S4wS8uSFiS1kJeNoImZaiYxuMgHL2AgaTrCJHD0cke5b9dJLSrcSuYAASCQti5zCkS9I+JmCMtoHUQJZ6HVKtWBC6g7OPIhbuSkEngd2kTjEpiUZesmxeqr8beVRpv4y2IHKXGCXlyQsSWshLxtBEzLUTGNxkA5ewEDSdYRI4ejkj3Lfr//vgQAAAD/wf0Gs5wk8sA/oNZzhJzEiDQaznKTmJEGg1nOUngSbkjjdoAADDkPZIKyKKN30BJ6SOJhIkquSnMEkBkKagQAiarWJXU1UBAIst9hYpvKUAMZVdhgWsOijUsM/lYsjCoBKhoKXfDZmcthfylaGjvrIdQurF82TqxUNiNZF///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////gSbkjjdoAADDkPZIKyKKN30BJ6SOJhIkquSnMEkBkKagQAiarWJXU1UBAIst9hYpvKUAMZVdhgWsOijUsM/lYsjCoBKhoKXfDZmcthfylaGjvrIdQurF82TqxUNiNZF/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////pRkclsmoAAC7UUpaZ5Y+jI7gXASvYOrQmvNXS+p1CsdZMIgZTuWhwMCwovcGrQpW8QngQKHiAMspL2fLDkwELa0j896aoOEeh4UKUABcKBCwUTLsqVuUjlHlMnOkc7TfhWmpRkclsmoAAC7UUpaZ5Y+jI7gXASvYOrQmvNXS+p1CsdZMIgZTuWhwMCwovcGrQpW8QngQKHiAMspL2fLDkwELa0j896aoOEeh4UKUABcKBCwUTLsqVuUjlHlMnOkc7TfhWm//vgQAAAD/ofz2s5yk58Q/ntZzlJ10V/O6zkzbror+d1nJm3gSlttttgAAD6kAEGgycHDxB9zGNVbMAm0pSZQ/ZeYVBbCghAKDOpvxYZz4qIgVsPy+IUHEjQMKEBAANXaJDNWRQeVQZ2HS3xzhpDKgXmWiWj2B32szkSr3pVWs5VcKf//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+BKW2222AAAPqQAQaDJwcPEH3MY1VswCbSlJlD9l5hUFsKCEAoM6m/FhnPioiBWw/L4hQcSNAwoQEAA1dokM1ZFB5VBnYdLfHOGkMqBeZaJaPYHfazORKvelVazlVwp///////////////////////////////////////4SpLNtbY2kmxIFEP2YlQtE9aoiUBqBaQHGlwx4cGCGsQVzuGuYxxS9amCbBlFhx6YwciRKhYAHAIS0r02hQhZCJ65kZ1ftwQ6LeWDVnFCEihwhgE2mvDCgDytzi71hYMIQAZMpBiGE6IIFpuT2MPJ1HjLuoe8u4h7aP/2x709NiGH6YgxDD0zEHTk/TED02jTMPTYhl5abIOT2E4QdOiCDoPbRh6bJ1GH2Yg5CSemQ6bE9EB8BAjSKiBEJUlm2tsbSTYkCiH7MSoWietURKA1AtIDjS4Y8ODBDWIK53DXMY4petTBNgyiw49MYORIlQsADgEJaV6bQoQshE9cyM6v24IdFvLBqzihCRQ4QwCbTXhhQB5W5xd6wsGEIAMmUgxDCdEEC03J7GHk6jxl3UPeXcQ9tH/7Y96emxDD9MQYhh6ZiDpyfpiB6bRpmHpsQy8tNkHJ7CcIOnRBB0Htow9Nk6jD7MQchJPTIdNieiA+AgRpFRAg//vgQAAAD/xo0Os4Y20QjRodZwxtjgCvOaxh63HAFec1jD1uZKkktstsabmCymQljwOFjCty7yyrEi8pMayZURalYKSqBAZkDQYpSl6wZc0WR9dZRVpr7LGrs5hxrTysqZ1H1KXESGdaDVNktVNWsK6tOy7rWmskAGw7hTpkZFMSk5JUCU8lJqYxWCFGyepiU3b2a2tter1rdufszNv2vWrZdq3mnmV1zF0yNkpZSGLhkqOT2AnNnUZypaMrmLhy6mPoTGh1GdHzJ7QyjOVLK1hdc5iTHzS65y4dHxytZMXDJ5k9w+gOo2VrS71vsutRssRs3Z////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////ZKkktstsabmCymQljwOFjCty7yyrEi8pMayZURalYKSqBAZkDQYpSl6wZc0WR9dZRVpr7LGrs5hxrTysqZ1H1KXESGdaDVNktVNWsK6tOy7rWmskAGw7hTpkZFMSk5JUCU8lJqYxWCFGyepiU3b2a2tter1rdufszNv2vWrZdq3mnmV1zF0yNkpZSGLhkqOT2AnNnUZypaMrmLhy6mPoTGh1GdHzJ7QyjOVLK1hdc5iTHzS65y4dHxytZMXDJ5k9w+gOo2VrS71vsutRssRs3Z/////////////////////////////////////////////////////////////////////////////////////4ArE3tZImSQgqDhxBA8eZfT1RxXa6qtxE2K+MBPS2KkCwcp84ah8Igs9CamSTCbWLDoEC2wJyEVpdI2vK9Srzxqjx1G+N5tYmkb0VYqkpN2ZmJ9q1d1/+NfOv85/+q2ziDCLiRoV1PTavv192hX6OmAKxN7WSJkkIKg4cQQPHmX09UcV2uqrcRNivjAT0tipAsHKfOGofCILPQmpkkwm1iw6BAtsCchFaXSNryvUq88ao8dRvjebWJpG9FWKpKTdmZifatXdf/jXzr/Of/qts4gwi4kaFdT02r79fdoV+jp//vgQAAAD/wcTes4Yk9GA4m9ZwxJyqR7Jaxh6SlUj2S1jD0lZLsk1skaAAFVBlAOaUpErIkfRGAX6LcIfL9cGHhClDcWHEgU8DGCh4cjK6X/kxDJaUipgaB1SAvplztynQspjhefENkol0eCUuZkvU2Pm/r+X9X///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////ZLsk1skaAAFVBlAOaUpErIkfRGAX6LcIfL9cGHhClDcWHEgU8DGCh4cjK6X/kxDJaUipgaB1SAvplztynQspjhefENkol0eCUuZkvU2Pm/r+X9X///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+AHby7WRoAAPAWAvGCdgwLJCYSx12lBFZkYRIiRAQcK2N+APZNIcChquhYB0bMtLk8aEUdB7IYSR68bHdJFNpngwbLpcxkIw4q2I8vrU3mXZFjqFtLwA7eXayNAAB4CwF4wTsGBZITCWOu0oIrMjCJESICDhWxvwB7JpDgUNV0LAOjZlpcnjQijoPZDCSPXjY7pIptM8GDZdLmMhGHFWxHl9am8y7IsdQtpc//vgQAAAD/seSGMZektH48kMYy9JSoyjFSxhiUFRlGKljDEopCtjsv8gA8w6BSgyLQrYyqqX2AgUtzEkO9dAwwwiIkeOVjZij+Ix9qyUOUgiqpij2XzQTCYYYkBMzbxfLxXUw1KVgcIissyvPLms3MyvcNxonFiv63////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////SFbHZf5AB5h0ClBkWhWxlVUvsBApbmJId66BhhhERI8crGzFH8Rj7VkocpBFVTFHsvmgmEwwxICZm3i+XiuphqUrA4RFZZleeXNZuZle4bjROLFf1v///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////ibumVAAmWeKIlXgJAiwTFSfShUXLLw8PEZGyc3AIXHlNMoYvZYWnZwxN56TtHK4+Eg6itFhJPX6tnsKKBoiwtcTESpq0S+Lb1tEv23fea/M175s38Td0yoAEyzxREq8BIEWCYqT6UKi5ZeHh4jI2Tm4BC48pplDF7LC07OGJvPSdo5XHwkHUVosJJ6/Vs9hRQNEWFriYiVNWiXxbetol+277zX5mvfNm///vgQAAAD/sbxmMZekNb43jMYy9ISUxvGYzhiQkpjeMxnDEhSTjbTdSgBtuy+DC4vykKpwmMWRNpC2rH3QR1a2pMBEGtYWTU0iLrKeZexKpFT7KQEmrG5Oz/iy037WvBZHyNZ1Mr1e8jtfOOkqF0rXY1biv//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+knG2m6lADbdl8GFxflIVThMYsibSFtWPugjq1tSYCINawsmppEXWU8y9iVSKn2UgJNWNydn/Flpv2teCyPkazqZXq95Ha+cdJULpWuxq3Ff////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////9tttxp1KAE614GIACsvoIgW1azBjJGnNKf2OrmJ2hCTHpVVoENs1g+VR26JBLFy9EkT3Zcm12fzoXHSVVarx+jWB0/zoYLEl03/I222406lACda8DEABWX0EQLatZgxkjTmlP7HVzE7QhJj0qq0CG2awfKo7dEgli5eiSJ7suTa7P50LjpKqtV4/RrA6f50MFiS6b/k//vgQAAAD/oSxmH4ebOcwljMPw82RaQ3GQewxsiahuMg9hjZUbbcaUqABl6AdkoF1bD0HqeWefx47C2Vhmnp1CoyWK05A1S322FZ9AnrHpRzg7UBSyaIDU8Te7zO9////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////9RttxpSoAGXoB2SgXVsPQep5Z5/HjsLZWGaenUKjJYrTkDVLfbYVn0CeselHODtQFLJogNTxN7vM73/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////v7unANLyqJEU60ecRxkPh3UtqQKH4DDog5M4cExAaobb34jvH/vn////////393TgGl5VEiKdaPOI4yHw7qW1IFD8Bh0QcmcOCYgNUNt78R3j/3w//vgQAAAD/sOxaEoGbGcYdi0JQM2CaADGICAACgcAGMQEAAFKRJKJOJAaRClHFWHUkaqC5QPDpUFathRiVQt/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+UiSUScSA0iFKOKsOpI1UFygeHSoK1bCjEqhb/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8gggAATsn9/////////////////////////////////////////////////////////////////////////////////////////////yCCAABOyf0//vgQAAAD/wAS4AAAAmcgAlwAAABCoABLgAAACAAACXAAAAE//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////vgQAAAD/wAS4AAAAmcgAlwAAABCoABLgAAACAAACXAAAAE////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////",
@@ -981,9 +1126,18 @@
     const modeHint = document.getElementById('modeHint');
     const securityWarning = document.getElementById('securityWarning');
 
+    // ミニチップ表示
+    const chipMode = document.getElementById('chipMode');
+    const chipSound = document.getElementById('chipSound');
+    const configChip = document.getElementById('configChip');
+
+    // ドロワーDOM
+    const btnOpenSettings = document.getElementById('btnOpenSettings');
+    const btnCloseDrawer = document.getElementById('btnCloseDrawer');
+    const drawerPanel = document.getElementById('drawerPanel');
+    const drawerBackdrop = document.getElementById('drawerBackdrop');
+
     // デバッグDOM
-    const debugAccordion = document.getElementById('debugAccordion');
-    const debugHeader = document.getElementById('debugHeader');
     const dbgTargetFreq = document.getElementById('dbgTargetFreq');
     const dbgRxVal = document.getElementById('dbgRxVal');
     const dbgAccVal = document.getElementById('dbgAccVal');
@@ -1006,16 +1160,42 @@
     }
 
     /* ==========================================================================
-       3. Web Audio API マスタリングバス & デコード・音量正規化
+       3. ドロワー（裏画面）の開閉ロジック
+       ========================================================================== */
+    function openDrawer() {
+      drawerPanel.classList.add('open');
+      drawerBackdrop.classList.add('open');
+    }
+
+    function closeDrawer() {
+      drawerPanel.classList.remove('open');
+      drawerBackdrop.classList.remove('open');
+    }
+
+    btnOpenSettings.addEventListener('click', openDrawer);
+    configChip.addEventListener('click', openDrawer);
+    btnCloseDrawer.addEventListener('click', closeDrawer);
+    drawerBackdrop.addEventListener('click', closeDrawer);
+
+    // ミニチップの更新
+    function updateConfigChip() {
+      const modeText = currentMode === 'A' ? 'モードA' : (currentMode === 'B' ? 'モードB' : 'ソロ');
+      const soundText = currentSound === 'crystal' ? '🥂 クリスタル' : (currentSound === 'cincin1' ? '🗣️ Cin cin! ①' : '🗣️ Cin cin! ②');
+      chipMode.textContent = modeText;
+      chipSound.textContent = soundText;
+    }
+
+    /* ==========================================================================
+       4. Web Audio API マスタリングバス & デコード・音量正規化
        ========================================================================== */
     function ensureAudioContext() {
       if (!audioCtx) {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioContextClass();
 
-        // 共有マスタリングコンプレッサー（全サウンドの音圧・ピークを揃えてクリッピングを完全防止）
+        // 共有マスタリングコンプレッサー
         masterCompressor = audioCtx.createDynamicsCompressor();
-        masterCompressor.threshold.setValueAtTime(-14, audioCtx.currentTime); // -14dB
+        masterCompressor.threshold.setValueAtTime(-14, audioCtx.currentTime);
         masterCompressor.knee.setValueAtTime(10, audioCtx.currentTime);
         masterCompressor.ratio.setValueAtTime(4.5, audioCtx.currentTime);
         masterCompressor.attack.setValueAtTime(0.003, audioCtx.currentTime);
@@ -1027,7 +1207,6 @@
       }
     }
 
-    // Base64 Data URI を ArrayBuffer に変換してデコード＆RMS音量正規化
     async function loadAndNormalizeAudio(key) {
       if (decodedBuffers[key]) return decodedBuffers[key];
       ensureAudioContext();
@@ -1038,7 +1217,7 @@
         const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
         decodedBuffers[key] = audioBuffer;
 
-        // 音量ダイナミクス測定（RMS値の算出）
+        // RMS正規化
         const channelData = audioBuffer.getChannelData(0);
         let sumSquares = 0;
         let peak = 0;
@@ -1050,12 +1229,11 @@
         }
         const rms = Math.sqrt(sumSquares / channelData.length);
 
-        // 目標RMS（-14.5dBFS相当 = 約0.18）に合わせてゲイン自動調整
         const targetRms = 0.18;
         if (rms > 0.005) {
           let normGain = targetRms / rms;
           if (peak * normGain > 0.95) {
-            normGain = 0.95 / peak; // ピークがクリップしないよう安全係数
+            normGain = 0.95 / peak;
           }
           bufferGains[key] = normGain;
         } else {
@@ -1069,14 +1247,13 @@
       }
     }
 
-    // アプリ起動時にバックグラウンドでデコード開始
     function preloadVoiceAudios() {
       loadAndNormalizeAudio('cincin1');
       loadAndNormalizeAudio('cincin2');
     }
 
     /* ==========================================================================
-       4. サウンド再生ロジック（ダイナミクス整合・3種切り替え）
+       5. サウンド再生ロジック（ダイナミクス制御）
        ========================================================================== */
     function playCheersSound() {
       ensureAudioContext();
@@ -1088,18 +1265,16 @@
       }
     }
 
-    // サウンド1: クリスタルグラス合成音（ダイナミクス調整版）
     function playCrystalClink() {
       const now = audioCtx.currentTime;
 
       const masterGain = audioCtx.createGain();
       masterGain.connect(masterCompressor);
-      masterGain.gain.setValueAtTime(0.82, now); // ボイス音量と完璧にマッチするゲイン
+      masterGain.gain.setValueAtTime(0.82, now);
 
-      // クリスタルグラスの固有振動モード
       const modes = [
         { freq: 2890, gain: 0.65, decay: 2.1 },
-        { freq: 3280, gain: 0.45, decay: 1.8 },
+        { freq: 3280, gain: 0.50, decay: 1.8 },
         { freq: 4920, gain: 0.28, decay: 1.1 },
         { freq: 6580, gain: 0.18, decay: 0.45 },
         { freq: 8850, gain: 0.14, decay: 0.28 }
@@ -1175,7 +1350,6 @@
       fizzSource.stop(now + fizzDuration);
     }
 
-    // サウンド2・3: Cin cin! ボイス再生（正規化ゲイン適用）
     async function playVoiceAudio(key) {
       let buffer = decodedBuffers[key];
       if (!buffer) {
@@ -1198,7 +1372,7 @@
     }
 
     /* ==========================================================================
-       5. 初期化と権限取得
+       6. 初期化と権限取得
        ========================================================================== */
     async function startApp() {
       if (isRunning) return;
@@ -1207,7 +1381,6 @@
         btnStart.textContent = '⏳ 初期化中...';
         btnStart.disabled = true;
 
-        // 1. iOS 13+ 加速度センサー権限の要求
         if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
           try {
             const motionPermission = await DeviceMotionEvent.requestPermission();
@@ -1219,13 +1392,9 @@
           }
         }
 
-        // 2. AudioContextの生成とアンロック
         ensureAudioContext();
-
-        // 3. ボイス音源の事前デコード
         preloadVoiceAudios();
 
-        // 4. マイク権限の取得
         if (currentMode !== 'solo') {
           try {
             mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -1243,16 +1412,12 @@
           }
         }
 
-        // 5. 加速度センサーイベントリスナー
         window.addEventListener('devicemotion', handleMotion, { passive: true });
 
-        // 6. 状態更新
         isRunning = true;
         btnStart.classList.add('running');
         btnStart.textContent = '🥂 乾杯スタンバイ完了！';
         updateUIStatus();
-
-        // 7. メイン監視ループ開始
         startLoop();
 
       } catch (err) {
@@ -1264,7 +1429,7 @@
     }
 
     /* ==========================================================================
-       6. Web Audio パイプライン（発信オシレーター & 受信アナライザー）
+       7. Web Audio パイプライン
        ========================================================================== */
     function setupAudioPipeline() {
       if (!audioCtx) return;
@@ -1306,15 +1471,15 @@
     }
 
     /* ==========================================================================
-       7. モード & サウンド切り替えUI
+       8. モード & サウンド切り替えUI（ドロワー内）
        ========================================================================== */
-    // サウンド切り替え
     document.querySelectorAll('#soundSelector .selector-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         currentSound = btn.dataset.sound;
         document.querySelectorAll('#soundSelector .selector-btn').forEach(b => {
           b.classList.toggle('active', b.dataset.sound === currentSound);
         });
+        updateConfigChip();
         ensureAudioContext();
         if (currentSound !== 'crystal') {
           loadAndNormalizeAudio(currentSound);
@@ -1322,7 +1487,6 @@
       });
     });
 
-    // モード切り替え
     function setMode(mode) {
       if (currentMode === mode) return;
       currentMode = mode;
@@ -1340,6 +1504,7 @@
       }
 
       dbgTargetFreq.textContent = FREQ_CONFIG[mode].rxFreq > 0 ? `${FREQ_CONFIG[mode].rxFreq.toLocaleString()}Hz` : 'なし';
+      updateConfigChip();
 
       if (isRunning && audioCtx) {
         if (mode === 'solo') {
@@ -1365,7 +1530,7 @@
     });
 
     /* ==========================================================================
-       8. 加速度（衝撃）検知
+       9. 加速度（衝撃）検知
        ========================================================================== */
     function handleMotion(e) {
       if (e.acceleration && (e.acceleration.x !== null || e.acceleration.y !== null || e.acceleration.z !== null)) {
@@ -1396,7 +1561,7 @@
     }
 
     /* ==========================================================================
-       9. 超音波接近検知 & メイン監視ループ
+       10. 超音波接近検知 & メイン監視ループ
        ========================================================================== */
     function startLoop() {
       function loop() {
@@ -1441,7 +1606,7 @@
     }
 
     /* ==========================================================================
-       10. 乾杯判定 & 発火処理（サウンド別アニメーション分岐）
+       11. 乾杯判定 & 発火処理
        ========================================================================== */
     function checkCheersCondition(hasImpact) {
       if (!isRunning || isCooldown) return;
@@ -1456,54 +1621,43 @@
     function triggerCheers() {
       isCooldown = true;
 
-      // 1. サウンド再生（ゼロ遅延・ダイナミクス制御）
       playCheersSound();
 
-      // 2. バイブレーション
       if (navigator.vibrate) {
         try {
           if (currentSound === 'crystal') {
             navigator.vibrate([30, 40, 70]);
           } else {
-            navigator.vibrate([25, 30, 35, 40, 60]); // Cin cin! の2拍子リズム
+            navigator.vibrate([25, 30, 35, 40, 60]);
           }
         } catch (e) {}
       }
 
       const isCinCin = (currentSound === 'cincin1' || currentSound === 'cincin2');
 
-      // 3. フラッシュ演出
       flashOverlay.className = isCinCin ? 'flash-cincin' : 'flash';
       setTimeout(() => flashOverlay.className = '', 140);
 
-      // 4. アニメーション & 画面表示の分岐
       if (isCinCin) {
-        // --- Cin cin! 専用アニメーション ---
         stageCard.classList.add('cincin-burst');
         setTimeout(() => stageCard.classList.remove('cincin-burst'), 900);
 
-        // Cin cin! 専用ポップアップバナー表示
         cincinBadge.classList.remove('show');
-        void cincinBadge.offsetWidth; // リフロー
+        void cincinBadge.offsetWidth;
         cincinBadge.classList.add('show');
         setTimeout(() => cincinBadge.classList.remove('show'), 1400);
 
-        // パーティクル（Cin cin! スタンプ付き）
         spawnParticles(true);
-
         mainStatusText.innerHTML = '🥂✨ <strong>Cin cin! 乾杯成立！</strong> ✨🥂';
 
       } else {
-        // --- 通常（クリスタルグラス）アニメーション ---
         stageCard.classList.add('cheers-burst');
         setTimeout(() => stageCard.classList.remove('cheers-burst'), 600);
 
         spawnParticles(false);
-
         mainStatusText.innerHTML = '🎉 <strong>乾杯成立！！！ (Cheers!)</strong>';
       }
 
-      // 5. クールダウンプログレス
       cooldownBar.classList.add('active');
       cooldownProgress.style.transition = 'none';
       cooldownProgress.style.transform = 'scaleX(1)';
@@ -1521,7 +1675,7 @@
     }
 
     /* ==========================================================================
-       11. UI状態表示 & デバッグ更新
+       12. UI状態表示 & デバッグ更新
        ========================================================================== */
     function updateUIStatus() {
       if (!isRunning) {
@@ -1561,7 +1715,7 @@
     }
 
     function updateMonitoringUI(rxLevel) {
-      if (debugAccordion.classList.contains('open')) {
+      if (drawerPanel.classList.contains('open')) {
         dbgRxVal.textContent = rxLevel;
         const rxPercent = Math.min(100, (rxLevel / 255) * 100);
         meterRxFill.style.width = `${rxPercent}%`;
@@ -1578,7 +1732,7 @@
     }
 
     /* ==========================================================================
-       12. パーティクルシステム（Canvas）
+       13. パーティクルシステム（Canvas）
        ========================================================================== */
     const canvas = document.getElementById('fxCanvas');
     const ctx = canvas.getContext('2d');
@@ -1610,7 +1764,6 @@
         if (isCinCin) {
           const cincinColors = ['#ff7e79', '#fce08a', '#ffb6c1', '#ffffff', '#e11d48', '#ffd700'];
           this.color = cincinColors[Math.floor(Math.random() * cincinColors.length)];
-          // Cin cin! の時は絵文字スタンプもランダム出現
           const emojis = ['🥂', '✨', '🍾', '🎉', '❤️'];
           this.emoji = Math.random() < 0.28 ? emojis[Math.floor(Math.random() * emojis.length)] : null;
         } else {
@@ -1679,13 +1832,9 @@
     renderParticles();
 
     /* ==========================================================================
-       13. コントロール & スライダーイベント
+       14. コントロール & スライダーイベント
        ========================================================================== */
     btnStart.addEventListener('click', startApp);
-
-    debugHeader.addEventListener('click', () => {
-      debugAccordion.classList.toggle('open');
-    });
 
     sliderRxThresh.addEventListener('input', (e) => {
       rxThreshold = parseInt(e.target.value, 10);
@@ -1724,6 +1873,9 @@
 
     markerRxThresh.style.left = `${(rxThreshold / 240) * 100}%`;
     markerAccThresh.style.left = `${(impactThreshold / 35.0) * 100}%`;
+
+    // 初期ミニチップ反映
+    updateConfigChip();
 
   </script>
 </body>
