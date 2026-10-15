@@ -27,7 +27,7 @@
   <style>
     :root {
       --bg-color: #0b0d13;
-      --card-bg: rgba(23, 27, 38, 0.82);
+      --card-bg: rgba(23, 27, 38, 0.85);
       --card-border: rgba(212, 175, 55, 0.25);
       --gold-primary: #f5cf68;
       --gold-gradient: linear-gradient(135deg, #fce08a 0%, #dfa732 50%, #b8860b 100%);
@@ -119,7 +119,7 @@
       justify-content: space-between;
     }
 
-    /* ヘッダー（シンプル＆ミニマル） */
+    /* ヘッダー */
     .app-header {
       display: flex;
       justify-content: space-between;
@@ -140,7 +140,7 @@
       gap: 6px;
     }
 
-    /* 設定ボタン（歯車アイコン） */
+    /* 設定ボタン（初期は非表示、メイン画面移行後に表示） */
     .btn-settings-toggle {
       background: rgba(255, 255, 255, 0.07);
       border: 1px solid var(--card-border);
@@ -153,7 +153,13 @@
       justify-content: center;
       cursor: pointer;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-      transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+      transition: transform 0.2s, background 0.2s, opacity 0.3s;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .btn-settings-toggle.visible {
+      opacity: 1;
+      pointer-events: auto;
     }
     .btn-settings-toggle:active {
       transform: scale(0.92);
@@ -164,7 +170,7 @@
       height: 20px;
     }
 
-    /* メインコンテンツ（赤枠のステージカードを中央にゆったり配置） */
+    /* メインコンテンツエリア */
     .main-stage-container {
       flex: 1;
       display: flex;
@@ -173,9 +179,88 @@
       align-items: center;
       width: 100%;
       padding: 10px 0;
+      position: relative;
     }
 
-    /* 現在の設定を示すミニマムバッジ（タップで設定を開く） */
+    /* ==========================================================================
+       ビュー1: 初期セットアップカード（Start前）
+       ========================================================================== */
+    .setup-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 24px;
+      padding: 26px 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+    .setup-card.hidden {
+      opacity: 0;
+      transform: scale(0.96) translateY(-10px);
+      pointer-events: none;
+      display: none;
+    }
+
+    .setup-header {
+      text-align: center;
+    }
+
+    .setup-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .setup-sub {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-top: 4px;
+    }
+
+    /* ==========================================================================
+       ビュー2: メインステージカード（赤枠部分・Start後）
+       ========================================================================== */
+    .stage-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 24px;
+      padding: 34px 22px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55);
+      transition: opacity 0.35s ease, transform 0.35s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      opacity: 0;
+      transform: scale(0.96) translateY(10px);
+      display: none;
+    }
+    .stage-card.active-view {
+      display: flex;
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
+    .stage-card.proximity-active {
+      border-color: rgba(245, 207, 104, 0.85);
+      box-shadow: 0 0 40px rgba(245, 207, 104, 0.45), inset 0 0 25px rgba(245, 207, 104, 0.2);
+    }
+
+    /* 現在の設定を示すミニマムバッジ */
     .current-config-pill {
       display: inline-flex;
       align-items: center;
@@ -193,30 +278,6 @@
     }
     .current-config-pill:active {
       background: rgba(245, 207, 104, 0.2);
-    }
-
-    /* 赤枠のステージカード本体 */
-    .stage-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-radius: 24px;
-      padding: 34px 22px 28px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55);
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .stage-card.proximity-active {
-      border-color: rgba(245, 207, 104, 0.85);
-      box-shadow: 0 0 40px rgba(245, 207, 104, 0.45), inset 0 0 25px rgba(245, 207, 104, 0.2);
     }
 
     /* グラスアニメーション */
@@ -250,7 +311,6 @@
       transform: rotate(10deg);
     }
 
-    /* 接近時のグラス引き寄せ */
     .proximity-active .glass-left {
       transform: translateX(14px) rotate(4deg);
       filter: drop-shadow(0 0 16px rgba(245, 207, 104, 0.75));
@@ -260,7 +320,6 @@
       filter: drop-shadow(0 0 16px rgba(245, 207, 104, 0.75));
     }
 
-    /* 乾杯アニメーション 1: クリスタル */
     .stage-card.cheers-burst .glass-left {
       animation: clinkLeft 0.55s ease-out;
     }
@@ -282,7 +341,6 @@
       100% { transform: translateX(0px) rotate(10deg); }
     }
 
-    /* 乾杯アニメーション 2: Cin cin! 専用ダブルチリン */
     .stage-card.cincin-burst .glass-left {
       animation: clinkDoubleLeft 0.85s cubic-bezier(0.25, 1, 0.5, 1);
     }
@@ -443,9 +501,36 @@
       font-weight: 600;
     }
 
-    /* スタートボタン */
-    .start-btn-wrap {
+    /* スタンバイ状態のフッターバッジ（メイン画面） */
+    .standby-badge-wrap {
       margin-top: 18px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .standby-badge {
+      background: rgba(245, 207, 104, 0.12);
+      border: 1px solid rgba(245, 207, 104, 0.35);
+      color: var(--gold-primary);
+      font-size: 14px;
+      font-weight: 700;
+      padding: 12px 24px;
+      border-radius: 25px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+      transition: background 0.2s, transform 0.2s;
+    }
+    .standby-badge:active {
+      transform: scale(0.97);
+      background: rgba(245, 207, 104, 0.22);
+    }
+
+    /* スタートボタン（セットアップ画面内） */
+    .start-btn-wrap {
       width: 100%;
       display: flex;
       justify-content: center;
@@ -464,22 +549,13 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
+      transition: transform 0.2s, box-shadow 0.2s;
       width: 100%;
-      max-width: 300px;
       justify-content: center;
     }
 
     .btn-start:active {
       transform: scale(0.97);
-    }
-
-    .btn-start.running {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text-sub);
-      box-shadow: none;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      cursor: default;
     }
 
     /* クールダウンバー */
@@ -591,7 +667,7 @@
       gap: 20px;
     }
 
-    /* ドロワー内の設定項目 */
+    /* セレクターコンポーネント */
     .selector-block {
       display: flex;
       flex-direction: column;
@@ -672,7 +748,7 @@
       padding: 0 4px;
     }
 
-    /* デバッグ＆感度調整（ドロワー内） */
+    /* デバッグ＆感度調整 */
     .debug-box {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -835,10 +911,10 @@
   <!-- メインビューポート -->
   <div class="app-viewport">
 
-    <!-- ヘッダー（シンプル＆ミニマル） -->
+    <!-- ヘッダー -->
     <header class="app-header">
       <div class="app-title">🥂 Cheers Clink!</div>
-      <!-- 設定ドロワーを開くボタン -->
+      <!-- 設定ドロワーを開くボタン（スタート後に表示） -->
       <button class="btn-settings-toggle" id="btnOpenSettings" aria-label="設定">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
@@ -847,25 +923,89 @@
       </button>
     </header>
 
-    <!-- HTTPS警告バナー（非セキュア環境時のみ） -->
+    <!-- HTTPS警告バナー -->
     <div id="securityWarning" class="warning-banner">
       ⚠️ <strong>HTTPS環境が必要です</strong><br>
       マイクや加速度センサーの権限を取得するには、HTTPS接続（またはlocalhost）で開く必要があります。
     </div>
 
-    <!-- メインコンテンツ（赤枠で囲まれたステージカード） -->
+    <!-- メインコンテンツ領域 -->
     <main class="main-stage-container">
 
-      <!-- 現在のモード＆サウンド表示チップ（タップで設定を開く） -->
-      <div class="current-config-pill" id="configChip" title="タップして設定を開く">
-        <span id="chipMode">モードA</span>
-        <span>•</span>
-        <span id="chipSound">🥂 クリスタル</span>
-        <span style="opacity: 0.6; font-size: 10px;">⚙️</span>
+      <!-- ====================================================================
+           1. 初期セットアップカード（Start前）
+           ==================================================================== -->
+      <div class="setup-card" id="setupCard">
+        <div class="setup-header">
+          <div class="setup-title">🥂 乾杯の初期設定</div>
+          <div class="setup-sub">モードとサウンドを選んでスタートしてください</div>
+        </div>
+
+        <!-- 1. 超音波モード選択 -->
+        <div class="selector-block">
+          <div class="selector-header-row">
+            <span class="selector-label">📡 1. 超音波の役割</span>
+          </div>
+          <div class="selector-pill-group" id="setupModeSelector">
+            <button class="selector-btn active" data-mode="A">
+              <span>モード A</span>
+              <span class="sub-text">18.5k発信/19.5k受信</span>
+            </button>
+            <button class="selector-btn" data-mode="B">
+              <span>モード B</span>
+              <span class="sub-text">19.5k発信/18.5k受信</span>
+            </button>
+            <button class="selector-btn" data-mode="solo">
+              <span>ソロ</span>
+              <span class="sub-text">衝撃検知のみ</span>
+            </button>
+          </div>
+          <div class="mode-hint" id="setupModeHint">
+            💡 1台目を「モードA」、2台目を「モードB」に設定してください
+          </div>
+        </div>
+
+        <!-- 2. 乾杯サウンド選択 -->
+        <div class="selector-block">
+          <div class="selector-header-row">
+            <span class="selector-label">🎵 2. 乾杯サウンド</span>
+          </div>
+          <div class="selector-pill-group" id="setupSoundSelector">
+            <button class="selector-btn active" data-sound="crystal">
+              <span>🥂 クリスタル</span>
+              <span class="sub-text">澄んだグラス音</span>
+            </button>
+            <button class="selector-btn cincin-active" data-sound="cincin1">
+              <span>🗣️ Cin cin! ①</span>
+              <span class="sub-text">チンチンボイス 1</span>
+            </button>
+            <button class="selector-btn cincin-active" data-sound="cincin2">
+              <span>🗣️ Cin cin! ②</span>
+              <span class="sub-text">チンチンボイス 2</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- スタートボタン -->
+        <div class="start-btn-wrap">
+          <button class="btn-start" id="btnStart">
+            <span>✨ 乾杯の準備をする (Start)</span>
+          </button>
+        </div>
       </div>
 
-      <!-- 赤枠のステージカード -->
+      <!-- ====================================================================
+           2. メインステージカード（Start後・赤枠部分）
+           ==================================================================== -->
       <div class="stage-card" id="stageCard">
+
+        <!-- 現在のモード＆サウンド表示チップ（タップでサイドバーを開く） -->
+        <div class="current-config-pill" id="configChip" title="タップして設定を変更">
+          <span id="chipMode">モードA</span>
+          <span>•</span>
+          <span id="chipSound">🥂 クリスタル</span>
+          <span style="opacity: 0.6; font-size: 10px;">⚙️</span>
+        </div>
 
         <!-- Cin cin! ポップアップバナー（専用演出） -->
         <div class="cincin-popup-wrap">
@@ -912,8 +1052,8 @@
         <!-- ステータス表記 -->
         <div class="status-area">
           <div class="primary-status" id="mainStatusText">
-            <span class="pulse-dot" id="statusDot"></span>
-            <span id="statusLabel">開始ボタンを押してください</span>
+            <span class="pulse-dot active" id="statusDot"></span>
+            <span id="statusLabel">もう1台のスマホに近づけてください</span>
           </div>
 
           <div class="indicator-pills">
@@ -928,17 +1068,18 @@
           </div>
         </div>
 
-        <!-- スタートボタン -->
-        <div class="start-btn-wrap">
-          <button class="btn-start" id="btnStart">
-            <span>✨ 乾杯の準備をする (Start)</span>
+        <!-- スタンバイ状態表示バッジ（タップで設定を開く） -->
+        <div class="standby-badge-wrap">
+          <button class="standby-badge" id="btnStandbyBadge" title="設定を開く">
+            <span>✨ 乾杯スタンバイ中</span>
+            <span style="font-size: 11px; opacity: 0.7;">(設定変更 ⚙️)</span>
           </button>
         </div>
 
       </div>
     </main>
 
-    <!-- 下部スペース（余白調整） -->
+    <!-- 下部スペース -->
     <div style="height: 10px;"></div>
 
   </div>
@@ -964,7 +1105,7 @@
         <div class="selector-header-row">
           <span class="selector-label">🎵 乾杯サウンド切り替え</span>
         </div>
-        <div class="selector-pill-group" id="soundSelector">
+        <div class="selector-pill-group" id="drawerSoundSelector">
           <button class="selector-btn active" data-sound="crystal">
             <span>🥂 クリスタル</span>
             <span class="sub-text">澄んだグラス音</span>
@@ -985,7 +1126,7 @@
         <div class="selector-header-row">
           <span class="selector-label">📡 超音波周波数の役割</span>
         </div>
-        <div class="selector-pill-group" id="modeSelector">
+        <div class="selector-pill-group" id="drawerModeSelector">
           <button class="selector-btn active" data-mode="A">
             <span>モード A</span>
             <span class="sub-text">18.5k発信/19.5k受信</span>
@@ -999,7 +1140,7 @@
             <span class="sub-text">衝撃検知のみ</span>
           </button>
         </div>
-        <div class="mode-hint" id="modeHint">
+        <div class="mode-hint" id="drawerModeHint">
           💡 1台目を「モードA」、2台目を「モードB」に設定してください
         </div>
       </div>
@@ -1071,8 +1212,8 @@
         <ol>
           <li>端末Aを「モードA」、端末Bを「モードB」にします。</li>
           <li>お好みの乾杯サウンドを選択します。</li>
-          <li>両端末で「乾杯の準備をする」をタップしてマイク・モーションを許可します。</li>
           <li>スマホを近づけて「接近中！」になったら、コツンと軽くぶつけて乾杯！</li>
+          <li>右上の⚙️ボタンからいつでも設定変更できます。</li>
         </ol>
       </div>
 
@@ -1132,8 +1273,15 @@
     let rafId = null;
 
     // DOM要素
-    const btnStart = document.getElementById('btnStart');
+    const setupCard = document.getElementById('setupCard');
     const stageCard = document.getElementById('stageCard');
+    const btnStart = document.getElementById('btnStart');
+    const btnOpenSettings = document.getElementById('btnOpenSettings');
+    const btnCloseDrawer = document.getElementById('btnCloseDrawer');
+    const drawerPanel = document.getElementById('drawerPanel');
+    const drawerBackdrop = document.getElementById('drawerBackdrop');
+    const btnStandbyBadge = document.getElementById('btnStandbyBadge');
+
     const cincinBadge = document.getElementById('cincinBadge');
     const mainStatusText = document.getElementById('statusLabel');
     const statusDot = document.getElementById('statusDot');
@@ -1143,19 +1291,13 @@
     const cooldownBar = document.getElementById('cooldownBar');
     const cooldownProgress = document.getElementById('cooldownProgress');
     const flashOverlay = document.getElementById('flashOverlay');
-    const modeHint = document.getElementById('modeHint');
     const securityWarning = document.getElementById('securityWarning');
 
-    // ミニチップ表示
+    const setupModeHint = document.getElementById('setupModeHint');
+    const drawerModeHint = document.getElementById('drawerModeHint');
     const chipMode = document.getElementById('chipMode');
     const chipSound = document.getElementById('chipSound');
     const configChip = document.getElementById('configChip');
-
-    // ドロワーDOM
-    const btnOpenSettings = document.getElementById('btnOpenSettings');
-    const btnCloseDrawer = document.getElementById('btnCloseDrawer');
-    const drawerPanel = document.getElementById('drawerPanel');
-    const drawerBackdrop = document.getElementById('drawerBackdrop');
 
     // デバッグDOM
     const dbgTargetFreq = document.getElementById('dbgTargetFreq');
@@ -1194,16 +1336,82 @@
 
     btnOpenSettings.addEventListener('click', openDrawer);
     configChip.addEventListener('click', openDrawer);
+    btnStandbyBadge.addEventListener('click', openDrawer);
     btnCloseDrawer.addEventListener('click', closeDrawer);
     drawerBackdrop.addEventListener('click', closeDrawer);
 
-    // ミニチップの更新
-    function updateConfigChip() {
+    // ミニチップおよび全セレクターのUI同期
+    function syncSelectors() {
+      // モードセレクターの同期（セットアップ画面 ＆ サイドバー）
+      document.querySelectorAll('#setupModeSelector .selector-btn, #drawerModeSelector .selector-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === currentMode);
+      });
+
+      // サウンドセレクターの同期（セットアップ画面 ＆ サイドバー）
+      document.querySelectorAll('#setupSoundSelector .selector-btn, #drawerSoundSelector .selector-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.sound === currentSound);
+      });
+
+      // ガイド文言の同期
+      const hintText = currentMode === 'A'
+        ? '💡 1台目を「モードA」、2台目を「モードB」に設定してください'
+        : (currentMode === 'B'
+          ? '💡 2台目を「モードB」、1台目を「モードA」に設定してください'
+          : '💡 ソロモード：マイクを使わず、衝撃だけで音が鳴ります');
+      setupModeHint.textContent = hintText;
+      drawerModeHint.textContent = hintText;
+
+      dbgTargetFreq.textContent = FREQ_CONFIG[currentMode].rxFreq > 0 ? `${FREQ_CONFIG[currentMode].rxFreq.toLocaleString()}Hz` : 'なし';
+
+      // ミニチップ更新
       const modeText = currentMode === 'A' ? 'モードA' : (currentMode === 'B' ? 'モードB' : 'ソロ');
       const soundText = currentSound === 'crystal' ? '🥂 クリスタル' : (currentSound === 'cincin1' ? '🗣️ Cin cin! ①' : '🗣️ Cin cin! ②');
       chipMode.textContent = modeText;
       chipSound.textContent = soundText;
     }
+
+    function setSound(sound) {
+      currentSound = sound;
+      syncSelectors();
+      ensureAudioContext();
+      if (currentSound !== 'crystal') {
+        loadAndNormalizeAudio(currentSound);
+      }
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      syncSelectors();
+
+      if (isRunning && audioCtx) {
+        if (mode === 'solo') {
+          if (txGainNode) txGainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        } else {
+          if (!mediaStream) {
+            navigator.mediaDevices.getUserMedia({
+              audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+            }).then(stream => {
+              mediaStream = stream;
+              setupAudioPipeline();
+            }).catch(e => console.warn(e));
+          } else {
+            setupAudioPipeline();
+          }
+        }
+      }
+      if (isRunning) {
+        updateUIStatus();
+      }
+    }
+
+    // セットアップ画面およびサイドバーのボタンクリックリスナー登録
+    document.querySelectorAll('#setupModeSelector .selector-btn, #drawerModeSelector .selector-btn').forEach(btn => {
+      btn.addEventListener('click', () => setMode(btn.dataset.mode));
+    });
+
+    document.querySelectorAll('#setupSoundSelector .selector-btn, #drawerSoundSelector .selector-btn').forEach(btn => {
+      btn.addEventListener('click', () => setSound(btn.dataset.sound));
+    });
 
     /* ==========================================================================
        4. Web Audio API マスタリングバス & デコード・音量正規化
@@ -1319,7 +1527,6 @@
         osc.stop(now + mode.decay + 0.05);
       });
 
-      // 接触クリック
       const clickDuration = 0.012;
       const clickBuffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * clickDuration), audioCtx.sampleRate);
       const clickData = clickBuffer.getChannelData(0);
@@ -1343,7 +1550,6 @@
       clickGain.connect(masterGain);
       clickSource.start(now);
 
-      // 泡ノイズ
       const fizzDuration = 1.2;
       const fizzBuffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * fizzDuration), audioCtx.sampleRate);
       const fizzData = fizzBuffer.getChannelData(0);
@@ -1392,7 +1598,7 @@
     }
 
     /* ==========================================================================
-       6. 初期化と権限取得
+       6. 初期化と画面切り替え（Startボタン押下時）
        ========================================================================== */
     async function startApp() {
       if (isRunning) return;
@@ -1435,8 +1641,12 @@
         window.addEventListener('devicemotion', handleMotion, { passive: true });
 
         isRunning = true;
-        btnStart.classList.add('running');
-        btnStart.textContent = '🥂 乾杯スタンバイ完了！';
+
+        // ★ 画面切り替え：セットアップカードを非表示にし、メインステージカード＆設定ボタンを表示
+        setupCard.classList.add('hidden');
+        stageCard.classList.add('active-view');
+        btnOpenSettings.classList.add('visible');
+
         updateUIStatus();
         startLoop();
 
@@ -1491,66 +1701,7 @@
     }
 
     /* ==========================================================================
-       8. モード & サウンド切り替えUI（ドロワー内）
-       ========================================================================== */
-    document.querySelectorAll('#soundSelector .selector-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        currentSound = btn.dataset.sound;
-        document.querySelectorAll('#soundSelector .selector-btn').forEach(b => {
-          b.classList.toggle('active', b.dataset.sound === currentSound);
-        });
-        updateConfigChip();
-        ensureAudioContext();
-        if (currentSound !== 'crystal') {
-          loadAndNormalizeAudio(currentSound);
-        }
-      });
-    });
-
-    function setMode(mode) {
-      if (currentMode === mode) return;
-      currentMode = mode;
-
-      document.querySelectorAll('#modeSelector .selector-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.mode === mode);
-      });
-
-      if (mode === 'A') {
-        modeHint.textContent = '💡 1台目を「モードA」、相手の2台目を「モードB」に設定してください';
-      } else if (mode === 'B') {
-        modeHint.textContent = '💡 2台目を「モードB」、相手の1台目を「モードA」に設定してください';
-      } else {
-        modeHint.textContent = '💡 ソロモード：マイクを使わず、衝撃だけで音が鳴ります';
-      }
-
-      dbgTargetFreq.textContent = FREQ_CONFIG[mode].rxFreq > 0 ? `${FREQ_CONFIG[mode].rxFreq.toLocaleString()}Hz` : 'なし';
-      updateConfigChip();
-
-      if (isRunning && audioCtx) {
-        if (mode === 'solo') {
-          if (txGainNode) txGainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-        } else {
-          if (!mediaStream) {
-            navigator.mediaDevices.getUserMedia({
-              audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
-            }).then(stream => {
-              mediaStream = stream;
-              setupAudioPipeline();
-            }).catch(e => console.warn(e));
-          } else {
-            setupAudioPipeline();
-          }
-        }
-      }
-      updateUIStatus();
-    }
-
-    document.querySelectorAll('#modeSelector .selector-btn').forEach(btn => {
-      btn.addEventListener('click', () => setMode(btn.dataset.mode));
-    });
-
-    /* ==========================================================================
-       9. 加速度（衝撃）検知
+       8. 加速度（衝撃）検知
        ========================================================================== */
     function handleMotion(e) {
       if (e.acceleration && (e.acceleration.x !== null || e.acceleration.y !== null || e.acceleration.z !== null)) {
@@ -1581,7 +1732,7 @@
     }
 
     /* ==========================================================================
-       10. 超音波接近検知 & メイン監視ループ
+       9. 超音波接近検知 & メイン監視ループ
        ========================================================================== */
     function startLoop() {
       function loop() {
@@ -1626,7 +1777,7 @@
     }
 
     /* ==========================================================================
-       11. 乾杯判定 & 発火処理
+       10. 乾杯判定 & 発火処理
        ========================================================================== */
     function checkCheersCondition(hasImpact) {
       if (!isRunning || isCooldown) return;
@@ -1695,16 +1846,10 @@
     }
 
     /* ==========================================================================
-       12. UI状態表示 & デバッグ更新
+       11. UI状態表示 & デバッグ更新
        ========================================================================== */
     function updateUIStatus() {
-      if (!isRunning) {
-        mainStatusText.textContent = '開始ボタンを押してください';
-        statusDot.className = 'pulse-dot';
-        stageCard.classList.remove('proximity-active');
-        return;
-      }
-
+      if (!isRunning) return;
       if (isCooldown) return;
 
       const conf = FREQ_CONFIG[currentMode];
@@ -1752,7 +1897,7 @@
     }
 
     /* ==========================================================================
-       13. パーティクルシステム（Canvas）
+       12. パーティクルシステム（Canvas）
        ========================================================================== */
     const canvas = document.getElementById('fxCanvas');
     const ctx = canvas.getContext('2d');
@@ -1852,7 +1997,7 @@
     renderParticles();
 
     /* ==========================================================================
-       14. コントロール & スライダーイベント
+       13. コントロール & スライダーイベント
        ========================================================================== */
     btnStart.addEventListener('click', startApp);
 
@@ -1894,8 +2039,8 @@
     markerRxThresh.style.left = `${(rxThreshold / 240) * 100}%`;
     markerAccThresh.style.left = `${(impactThreshold / 35.0) * 100}%`;
 
-    // 初期ミニチップ反映
-    updateConfigChip();
+    // 初期セレクター・チップ同期
+    syncSelectors();
 
   </script>
 </body>
